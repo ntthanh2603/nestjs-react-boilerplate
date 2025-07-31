@@ -53,8 +53,7 @@ export function MembersFilters({
             <SelectContent>
               <SelectItem value="all">Tất cả vai trò</SelectItem>
               <SelectItem value={RoleMember.ADMIN}>Quản trị viên</SelectItem>
-              <SelectItem value={RoleMember.OWNER}>Chủ cửa hàng</SelectItem>
-              <SelectItem value={RoleMember.EMPLOYEE}>Nhân viên</SelectItem>
+              <SelectItem value={RoleMember.USER}>Người dùng</SelectItem>
             </SelectContent>
           </Select>
         </div>

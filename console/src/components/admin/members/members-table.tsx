@@ -86,8 +86,8 @@ export function MembersTable({
         if (role === RoleMember.ADMIN) {
           roleText = "Quản trị viên";
           bgColor = "bg-purple-100 text-purple-800";
-        } else if (role === RoleMember.OWNER) {
-          roleText = "Chủ cửa hàng";
+        } else if (role === RoleMember.USER) {
+          roleText = "Người dùng";
           bgColor = "bg-green-100 text-green-800";
         }
 
@@ -136,7 +136,7 @@ export function MembersTable({
                 Sao chép ID
               </DropdownMenuItem>
               <DropdownMenuItem>Xem chi tiết</DropdownMenuItem>
-              <DropdownMenuItem>Chỉnh sửa</DropdownMenuItem>
+              <DropdownMenuItem>Cấp quyền admin</DropdownMenuItem>
               <DropdownMenuItem
                 className={member.isBanned ? "text-green-600" : "text-red-500"}
                 onClick={() => onToggleBan(member.id, member.isBanned)}

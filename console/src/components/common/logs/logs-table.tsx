@@ -13,9 +13,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
-import type { LogsResponse } from "@/types/logs.type";
 import { createColumns } from "./logs-table-columns";
 import type { SearchLogsParams } from "@/hooks/logs/use-search-logs-params";
+import type { LogsResponse } from "@/types/logs.type";
 
 interface LogsTableProps {
   data: LogsResponse | undefined;

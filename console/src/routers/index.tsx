@@ -3,29 +3,14 @@ import NotFound from "@/routers/not-found";
 import SignIn from "@/pages/common/sign-in";
 import LayoutAdmin from "@/components/admin/layouts/layout-admin";
 import AdminRoute from "@/routers/admin-router";
-import AddAdminPage from "@/pages/admin/add-admin";
 import DashboardAdmin from "@/pages/admin/dashboard-admin";
-import AddOwnerPage from "@/pages/admin/add-owner";
-import MembersPage from "@/pages/admin/members";
 import LogsPage from "@/pages/common/logs";
-import GuestRoute from "@/routers/guest-route";
+import MemberRoute from "./member-router";
+import LayoutMember from "@/components/member/layouts/layout-member";
+import DashboardMember from "@/pages/member/dashboard-member";
+import MembersPage from "@/pages/admin/members";
 
 export const router = createBrowserRouter([
-  {
-    path: "",
-    element: (
-      <GuestRoute>
-        <div></div>
-      </GuestRoute>
-    ),
-    children: [
-      {
-        path: "logs",
-        element: <LogsPage />,
-      },
-    ],
-  },
-
   {
     path: "admin",
     element: (
@@ -39,16 +24,27 @@ export const router = createBrowserRouter([
         element: <DashboardAdmin />,
       },
       {
-        path: "add-admin",
-        element: <AddAdminPage />,
-      },
-      {
-        path: "add-owner",
-        element: <AddOwnerPage />,
-      },
-      {
         path: "members",
         element: <MembersPage />,
+      },
+      {
+        path: "logs",
+        element: <LogsPage />,
+      },
+    ],
+  },
+
+  {
+    path: "",
+    element: (
+      <MemberRoute>
+        <LayoutMember />
+      </MemberRoute>
+    ),
+    children: [
+      {
+        path: "dashboard-member",
+        element: <DashboardMember />,
       },
       {
         path: "logs",
