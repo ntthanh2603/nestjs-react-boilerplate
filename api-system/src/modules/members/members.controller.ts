@@ -20,10 +20,8 @@ import {
   GetMemberResponseDto,
   SignInMemberStep1Dto,
   SignInMemberStep2Dto,
-  SignUpAdminDto,
-  SignUpMemberDto,
   UpdateMySettingDto,
-  UpdateProfileByHigherPrivilegeThanDto,
+  UpdateRoleDto,
 } from './dto/member.dto';
 import { Doc } from 'src/common/doc/doc.decorator';
 import { DefaultMessageResponseDto } from 'src/common/dtos/default-message-response.dto';
@@ -90,25 +88,6 @@ export class MembersController {
   @UseGuards(JwtAuthGuard)
   filterSearchMembers(@Query() query: FilterSearchMemberDto) {
     return this.membersService.filterSearchMembers(query);
-  }
-
-  @Doc({
-    summary: 'Add role admin. Role: ADMIN',
-    description:
-      'Add role admin to member. Return a default message response object',
-    response: {
-      serialization: DefaultMessageResponseDto,
-    },
-  })
-  @Post('/add-role-admin')
-  @UseGuards(JwtAuthGuard)
-  @Role(RoleMember.ADMIN)
-  async addRoleAdmin(@Admin() admin: IMember, @Body() dto: SignUpAdminDto) {
-    await this.membersService.addRoleAdmin(admin, dto);
-
-    return {
-      message: 'Success',
-    };
   }
 
   @Doc({
@@ -219,6 +198,25 @@ export class MembersController {
       token: result.token,
       expiredAt: result.expiredAt,
       member: result.member,
+    };
+  }
+
+  @Doc({
+    summary: 'Update role admin. Role: ADMIN',
+    description:
+      'Update role admin to member. Return a default message response object',
+    response: {
+      serialization: DefaultMessageResponseDto,
+    },
+  })
+  @Patch('/role')
+  @UseGuards(JwtAuthGuard)
+  @Role(RoleMember.ADMIN)
+  async updateRole(@Admin() admin: IMember, @Body() dto: UpdateRoleDto) {
+    await this.membersService.updateRole(admin, dto);
+
+    return {
+      message: 'Success',
     };
   }
 

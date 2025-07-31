@@ -274,8 +274,12 @@ export class UpdateProfileByHigherPrivilegeThanDto {
   address: AddressDto;
 }
 
-export class SignUpAdminDto {
+export class UpdateRoleDto {
   @ApiProperty()
   @IsUUID('4', { message: 'MemberId must be UUID' })
   id: string;
+
+  @ApiProperty()
+  @IsEnum(RoleMember)
+  roleMember: RoleMember;
 }

@@ -11,7 +11,7 @@ import {
   SignInMemberStep2Dto,
   BanMemberDto,
   UpdateMySettingDto,
-  SignUpAdminDto,
+  UpdateRoleDto,
 } from './dto/member.dto';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -201,9 +201,9 @@ export class MembersService implements OnModuleInit {
    * @returns a default message response object
    * @throws {ConflictException} if the email address is already used
    */
-  public async addRoleAdmin(
+  public async updateRole(
     admin: IMember,
-    dto: SignUpAdminDto,
+    dto: UpdateRoleDto,
   ): Promise<Members> {
     if (admin.email !== process.env.EMAIL_ADMIN_ROOT) {
       throw new UnauthorizedException(
@@ -216,7 +216,7 @@ export class MembersService implements OnModuleInit {
     if (!member) {
       throw new NotFoundException('Member is not found');
     }
-    member.roleMember = RoleMember.ADMIN;
+    member.roleMember = dto.roleMember;
     return await this.memberRepository.save(member);
   }
 
