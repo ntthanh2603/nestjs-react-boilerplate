@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
   InternalServerErrorException,
@@ -19,7 +20,7 @@ import {
   BanMemberDto,
   GetMemberResponseDto,
   SignInMemberStep1Dto,
-  SignInMemberStep2Dto,
+  SignInMemberConfirmOtpDto,
   UpdateMySettingDto,
   UpdateRoleDto,
 } from './dto/member.dto';
@@ -84,14 +85,14 @@ export class MembersController {
       serialization: GetManyBaseResponseDto<Members>,
     },
   })
-  @Get('/filter-search-members')
+  @Get('/search')
   @UseGuards(JwtAuthGuard)
   filterSearchMembers(@Query() query: FilterSearchMemberDto) {
     return this.membersService.filterSearchMembers(query);
   }
 
   @Doc({
-    summary: 'Sign in member step 1. Public',
+    summary: 'Sign in member send otp or redrect to dashboard. Public',
     description:
       'Login to application with email and password. Return a token to access protected routes',
     response: {
@@ -99,8 +100,8 @@ export class MembersController {
     },
   })
   @Throttle({ default: { limit: 1, ttl: 5000 } })
-  @Post('/sign-in-step-1')
-  async signInStep1(
+  @Post('/sign-in/send-otp')
+  async signInSendOtp(
     @Req() req: any,
     @Res({ passthrough: true }) res: Response,
     @Headers() headers: Headers,
@@ -110,7 +111,7 @@ export class MembersController {
     const ua = headers['user-agent'];
     const deviceId = req.fingerprint.hash;
     const metaData: LoginMetadata = { ipAddress, ua, deviceId };
-    const result: any = await this.membersService.signInStep1(
+    const result: any = await this.membersService.signInSendOtp(
       res,
       dto,
       metaData,
@@ -120,7 +121,7 @@ export class MembersController {
   }
 
   @Doc({
-    summary: 'Sign in member step 2. Public',
+    summary: 'Sign in member confirm otp. Public',
     description:
       'Login to application with email and password. Return a token to access protected routes',
     response: {
@@ -128,12 +129,12 @@ export class MembersController {
     },
   })
   @Throttle({ default: { limit: 1, ttl: 5000 } })
-  @Post('/sign-in-step-2')
+  @Post('/sign-in/confirm-otp')
   async signInStep2(
     @Req() req: any,
     @Res({ passthrough: true }) res: Response,
     @Headers() headers: Headers,
-    @Body() dto: SignInMemberStep2Dto,
+    @Body() dto: SignInMemberConfirmOtpDto,
   ) {
     const ipAddress = req.connection.remoteAddress;
     const ua = headers['user-agent'];
@@ -228,7 +229,7 @@ export class MembersController {
       serialization: DefaultMessageResponseDto,
     },
   })
-  @Patch('/update-is-banned-member')
+  @Patch('/ban')
   @UseGuards(JwtAuthGuard)
   @Role(RoleMember.ADMIN)
   async updateIsBanned(
@@ -249,7 +250,7 @@ export class MembersController {
       serialization: DefaultMessageResponseDto,
     },
   })
-  @Patch('/update-my-setting')
+  @Patch('/settings')
   @UseGuards(JwtAuthGuard)
   async updateMySetting(
     @Member() member: IMember,
@@ -260,5 +261,18 @@ export class MembersController {
     return {
       message: 'Success',
     };
+  }
+
+  @Doc({
+    summary: 'Delete member. Role: Member',
+    description: 'Delete member. Return a message to confirm the operation',
+    response: {
+      serialization: DefaultMessageResponseDto,
+    },
+  })
+  @Delete()
+  @UseGuards(JwtAuthGuard)
+  deleteMember(@Member() member: IMember) {
+    return this.membersService.deleteMember(member);
   }
 }

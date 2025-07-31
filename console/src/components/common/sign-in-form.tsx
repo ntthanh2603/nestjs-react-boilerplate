@@ -41,7 +41,7 @@ export function SignInForm({
     resolver: zodResolver(signInFormSchema),
     mode: "onChange",
     defaultValues: {
-      roleMember: RoleMember.OWNER,
+      roleMember: RoleMember.USER,
       email: "",
       password: "",
       otp: "",
@@ -174,15 +174,10 @@ export function SignInForm({
                     <SelectValue placeholder="Chọn vai trò của bạn" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={RoleMember.OWNER}>
-                      Chủ cửa hàng
-                    </SelectItem>
-                    <SelectItem value={RoleMember.EMPLOYEE}>
-                      Nhân viên
-                    </SelectItem>
                     <SelectItem value={RoleMember.ADMIN}>
                       Quản trị viên
                     </SelectItem>
+                    <SelectItem value={RoleMember.USER}>Người dùng</SelectItem>
                   </SelectContent>
                 </Select>
                 {form.formState.errors.roleMember && (

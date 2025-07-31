@@ -14,6 +14,9 @@ export interface Member {
   image?: {
     id: string;
     url: string;
+    filename: string;
+    description: string;
+    userId: string;
   };
   facebook?: string;
   gender?: Gender;

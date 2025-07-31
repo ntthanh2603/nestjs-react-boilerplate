@@ -41,7 +41,7 @@ async function fetchMembers(
     isBanned: params.isBanned ? params.isBanned === "true" : undefined,
   };
 
-  const response = await axiosInstance.get("members/filter-search-members", {
+  const response = await axiosInstance.get("members/search", {
     params: queryParams,
   });
 
@@ -53,13 +53,10 @@ async function fetchMembers(
 }
 
 async function toggleMemberBanStatus(memberId: string, isBanned: boolean) {
-  const response = await axiosInstance.patch(
-    "members/update-is-banned-member",
-    {
-      isBanned: !isBanned,
-      memberId,
-    }
-  );
+  const response = await axiosInstance.patch("members/ban", {
+    isBanned: !isBanned,
+    memberId,
+  });
   return response.data;
 }
 

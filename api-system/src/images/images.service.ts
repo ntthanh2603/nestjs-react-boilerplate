@@ -9,6 +9,8 @@ import * as path from 'path';
 import { DefaultMessageResponseDto } from 'src/common/dtos/default-message-response.dto';
 import { type UploadImageMetaData } from './images.interface';
 import { IMember } from 'src/common/interfaces/app.interface';
+import { RedisService } from 'src/redis/redis.service';
+import { Members } from 'src/modules/members/entities/member.entity';
 
 @Injectable()
 export class ImagesService {
@@ -17,6 +19,10 @@ export class ImagesService {
   constructor(
     @InjectRepository(Images)
     private imageRepo: Repository<Images>,
+    private redisService: RedisService,
+
+    @InjectRepository(Members)
+    private memberRepository: Repository<Members>,
   ) {
     this.minioClient = new Minio.Client({
       endPoint: process.env.MINIO_ENDPOINT!,
@@ -209,6 +215,14 @@ export class ImagesService {
       description: `Update avatar member ${member.id}`,
       userId: member.id,
     });
+
+    await this.memberRepository.update(
+      { id: member.id },
+      { imageId: uploadFile.id },
+    );
+
+    // Delete member from redis
+    await this.redisService.del(`member:${member.id}`);
 
     return uploadFile;
   }

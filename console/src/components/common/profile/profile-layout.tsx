@@ -137,7 +137,7 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
       formData.append("file", avatarFile);
 
       const response = await axiosInstance.patch(
-        "/images/update-avatar-member",
+        "/images/member/avatar",
         formData,
         {
           headers: {
@@ -185,7 +185,7 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
           : {}),
       };
 
-      await axiosInstance.patch("/members/update-my-setting", updateData);
+      await axiosInstance.patch("/members/settings", updateData);
       customToast.success("Cập nhật thông tin thành công");
       localStorage.setItem(
         "member",

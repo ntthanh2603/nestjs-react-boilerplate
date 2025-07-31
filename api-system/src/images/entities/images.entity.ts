@@ -21,10 +21,10 @@ export class Images extends BaseEntity {
   @Column({ nullable: true })
   description?: string;
 
-  @Column()
+  @Column({ nullable: true, name: 'user_id' })
   userId: string;
 
   @OneToOne(() => Members, (member) => member.image)
-  @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   member: Members;
 }

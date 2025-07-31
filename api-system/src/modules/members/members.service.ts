@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Members } from './entities/member.entity';
 import {
   SignInMemberStep1Dto,
-  SignInMemberStep2Dto,
+  SignInMemberConfirmOtpDto,
   BanMemberDto,
   UpdateMySettingDto,
   UpdateRoleDto,
@@ -98,7 +98,7 @@ export class MembersService implements OnModuleInit {
     let member: any = await this.redisService.hGetAll(`member:${id}`);
     if (!member || Object.keys(member).length === 0) {
       const memberDb = await this.memberRepository.findOne({
-        where: { id },
+        where: { id, deletedAt: undefined, isBanned: false },
         relations: ['image'],
       });
       member = { ...memberDb };
@@ -258,6 +258,8 @@ export class MembersService implements OnModuleInit {
       throw new UnauthorizedException('2FA is not enabled');
     }
 
+    console.log('member', member);
+
     return member;
   }
 
@@ -302,7 +304,7 @@ export class MembersService implements OnModuleInit {
    * @param metaData the metadata object
    * @returns the login response object
    */
-  public async signInStep1(
+  public async signInSendOtp(
     res: Response,
     dto: SignInMemberStep1Dto,
     metaData: LoginMetadata,
@@ -348,7 +350,7 @@ export class MembersService implements OnModuleInit {
    */
   public async signInStep2(
     res: Response,
-    dto: SignInMemberStep2Dto,
+    dto: SignInMemberConfirmOtpDto,
     metaData: LoginMetadata,
   ) {
     const { email, password, roleMember, otp } = dto;
@@ -476,5 +478,19 @@ export class MembersService implements OnModuleInit {
 
     // Employees can't ban anyone
     return false;
+  }
+
+  /**
+   * Delete member
+   *
+   * @param member the member object
+   * @returns a default message response object
+   */
+  public async deleteMember(member: IMember) {
+    await this.memberRepository.softDelete({ id: member.id });
+    await this.redisService.del(`member:${member.id}`);
+    return {
+      message: 'Success',
+    };
   }
 }

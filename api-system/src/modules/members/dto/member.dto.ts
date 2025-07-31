@@ -43,7 +43,7 @@ export class SignInMemberStep1Dto {
   roleMember: RoleMember;
 }
 
-export class SignInMemberStep2Dto extends SignInMemberStep1Dto {
+export class SignInMemberConfirmOtpDto extends SignInMemberStep1Dto {
   @ApiProperty({ example: '123456' })
   @IsString()
   @MinLength(6)
@@ -152,12 +152,6 @@ export class GetMemberResponseDto {
 
   @ApiProperty({ type: AddressDto })
   address?: AddressDto;
-
-  @ApiProperty()
-  storeId?: string;
-
-  @ApiProperty()
-  workBranchId?: string;
 
   @ApiProperty()
   createdAt: Date;

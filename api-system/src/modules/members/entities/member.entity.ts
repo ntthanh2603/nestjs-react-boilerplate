@@ -1,5 +1,5 @@
 import { BaseEntity } from 'src/common/entities/base.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, DeleteDateColumn, Entity } from 'typeorm';
 import DeviceSessionEntity from 'src/modules/auth/entities/device-session.entity';
 import { Logging } from 'src/logging/entities/logging.entity';
 import { OneToMany, OneToOne, JoinColumn } from 'typeorm';
@@ -62,17 +62,17 @@ export class Members extends BaseEntity {
     districtOrTown: string;
   };
 
+  @DeleteDateColumn()
+  deletedAt?: Date;
+
   @OneToMany(() => DeviceSessionEntity, (deviceSession) => deviceSession.member)
   deviceSessions: DeviceSessionEntity[];
 
-  @Column('text', { name: 'store_id', nullable: true })
-  storeId?: string;
-
-  @Column('text', { name: 'work_branch_id', nullable: true })
-  workBranchId?: string;
-
   @OneToMany(() => Logging, (logging) => logging.member)
   logging: Logging[];
+
+  @Column('text', { nullable: true, name: 'image_id' })
+  imageId?: string;
 
   @OneToOne(() => Images, (images) => images.member)
   @JoinColumn({ name: 'image_id', referencedColumnName: 'id' })

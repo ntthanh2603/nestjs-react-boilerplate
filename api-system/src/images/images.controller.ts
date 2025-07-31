@@ -27,7 +27,7 @@ export class ImagesController {
       serialization: Images,
     },
   })
-  @Patch('/update-avatar-member')
+  @Patch('/member/avatar')
   @UseGuards(JwtAuthGuard)
   @Throttle({ default: { limit: 1, ttl: 2000 } })
   @UseInterceptors(FileInterceptor('file'))

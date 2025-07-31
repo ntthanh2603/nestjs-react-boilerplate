@@ -9,11 +9,13 @@ import * as path from 'path';
 import { BadRequestException } from '@nestjs/common';
 import { Global } from '@nestjs/common';
 import { LoggingModule } from 'src/logging/logging.module';
+import { RedisModule } from 'src/redis/redis.module';
+import { Members } from 'src/modules/members/entities/member.entity';
 
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Images]),
+    TypeOrmModule.forFeature([Images, Members]),
     MulterModule.register({
       storage: diskStorage({
         destination: './uploads',
@@ -41,6 +43,7 @@ import { LoggingModule } from 'src/logging/logging.module';
       },
     }),
     LoggingModule,
+    RedisModule,
   ],
   controllers: [ImagesController],
   providers: [ImagesService],

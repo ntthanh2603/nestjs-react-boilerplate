@@ -10,8 +10,8 @@ export const authService = {
     try {
       // Determine which endpoint to call based on whether OTP is provided
       const endpoint = credentials.otp
-        ? "/members/sign-in-step-2"
-        : "/members/sign-in-step-1";
+        ? "/members/sign-in/confirm-otp"
+        : "/members/sign-in/send-otp";
 
       const response = await axiosInstance.post(endpoint, credentials);
 
