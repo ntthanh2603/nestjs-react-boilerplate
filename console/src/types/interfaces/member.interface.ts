@@ -1,7 +1,7 @@
 import { RoleMember, Language, Gender } from "@/types/enums/enum";
 
 export interface Member {
-  id: number;
+  id: string;
   email: string;
   fullName?: string;
   description?: string;
@@ -23,7 +23,7 @@ export interface Member {
   birthday?: Date;
   is2FA?: boolean;
   roleMember?: RoleMember;
-  isBanned?: boolean;
+  isBanned: boolean;
   isNotification?: boolean;
   language?: Language;
   createdAt?: Date;

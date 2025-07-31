@@ -2,20 +2,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { axiosInstance } from "@/services/apis/axios-client";
 import { customToast } from "@/lib/toast";
 import { RoleMember } from "@/types/enums/enum";
-
-export interface Member {
-  id: string;
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  roleMember: RoleMember;
-  isBanned: boolean;
-  createdAt: string;
-  image?: {
-    id: string;
-    url: string;
-  };
-}
+import type { Member } from "@/types/interfaces/member.interface";
 
 export interface MembersResponse {
   data: Member[];

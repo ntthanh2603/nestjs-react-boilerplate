@@ -24,8 +24,9 @@ import { MoreHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { getInitials } from "@/lib/utils";
 import { RoleMember } from "@/types/enums/enum";
-import type { Member, MembersResponse } from "@/hooks/members/use-members";
+import type { MembersResponse } from "@/hooks/members/use-members";
 import type { SearchMembersParams } from "@/hooks/members/use-search-members-params";
+import type { Member } from "@/types/interfaces/member.interface";
 
 interface MembersTableProps {
   data?: MembersResponse;
@@ -59,7 +60,7 @@ export function MembersTable({
           <Avatar className="h-5 w-5 rounded-full">
             <AvatarImage
               src={row.original.image?.url}
-              alt={row.original.fullName}
+              alt={row.original.image?.description}
             />
             <AvatarFallback>
               {getInitials(row.original.fullName)}
