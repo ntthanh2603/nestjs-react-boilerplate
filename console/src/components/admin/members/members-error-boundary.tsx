@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { customToast } from "@/lib/toast";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -19,8 +20,8 @@ export class MembersErrorBoundary extends React.Component<
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Members Error Boundary caught an error:", error, errorInfo);
+  componentDidCatch() {
+    customToast.error("Members Error Boundary caught an error:");
   }
 
   render() {

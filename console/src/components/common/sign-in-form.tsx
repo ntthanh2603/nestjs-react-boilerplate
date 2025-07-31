@@ -53,10 +53,8 @@ export function SignInForm({
   const onSubmit = async (data: SignInFormData) => {
     setError(null);
     setIsLoading(true);
-    console.log(data);
     try {
       const response = await authService.signIn(data);
-      console.log(response);
 
       if (response?.message === "OTP has been sent to your email") {
         setStep("otp");
@@ -68,7 +66,6 @@ export function SignInForm({
         }
       }
     } catch (error: any) {
-      console.log(error.response?.data?.message);
       setError(
         error.response?.data?.message ||
           "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin."

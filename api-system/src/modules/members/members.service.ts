@@ -258,8 +258,6 @@ export class MembersService implements OnModuleInit {
       throw new UnauthorizedException('2FA is not enabled');
     }
 
-    console.log('member', member);
-
     return member;
   }
 

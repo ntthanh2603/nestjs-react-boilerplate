@@ -149,8 +149,6 @@ axiosInstance.interceptors.response.use(
       try {
         return await tokenManager.handleUnauthorized(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, redirect to login or handle accordingly
-        console.error("Token refresh failed:", refreshError);
         return Promise.reject(refreshError);
       }
     }
