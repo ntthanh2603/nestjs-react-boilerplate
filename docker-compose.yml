@@ -1,0 +1,102 @@
+services:
+  api-system:
+    container_name: api-system
+    build:
+      context: ./api-system
+      dockerfile: Dockerfile
+    networks:
+      - default
+    env_file:
+      - .env.production
+    ports:
+      - "3000:3000"
+    restart: "always"
+    depends_on:
+      - db-postgres
+      - redis
+      - minio
+
+  console:
+    container_name: console
+    build:
+      context: ./console
+      dockerfile: Dockerfile
+    networks:
+      - default
+    env_file:
+      - .env.production
+    ports:
+      - "3268:3268"
+    restart: "always"
+    depends_on:
+      - api-system
+
+  db-postgres:
+    container_name: db-postgres
+    image: postgres:15
+    restart: always
+    env_file:
+      - .env.production
+    environment:
+      POSTGRES_USER: ${POSTGRES_USERNAME:-tuanthanh}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-abc123xyz}
+      POSTGRES_DB: ${POSTGRES_DB:-smart_store}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - default
+
+  redis:
+    container_name: redis
+    image: redis:7-alpine
+    networks:
+      - default
+    env_file:
+      - .env.production
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: ${REDIS_DB}
+    volumes:
+      - redis_data:/data
+    command:
+      [
+        "redis-server",
+        "--requirepass",
+        "${REDIS_PASSWORD}",
+        "--maxmemory",
+        "200mb",
+        "--maxmemory-policy",
+        "allkeys-lru",
+      ]
+    restart: unless-stopped
+
+  minio:
+    container_name: minio
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000" # API
+      - "9001:9001" # Console
+    env_file:
+      - .env.production
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    volumes:
+      - minio-data:/data
+    networks:
+      - default
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio-data:
+
+networks:
+  default:
+    driver: bridge

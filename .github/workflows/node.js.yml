@@ -1,0 +1,315 @@
+# name: Deploy App Smart Retail Management System
+
+# on:
+#   push:
+#     branches: ["deployment"]
+
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Skip tests (temporary)
+#         run: echo "Tests skipped - will be implemented later"
+
+#   deploy:
+#     runs-on: self-hosted
+#     needs: test
+
+#     steps:
+#       - name: Pull latest code
+#         run: |
+#           cd /home/ubuntu/smart-retail-management-system
+#           git fetch origin
+#           git checkout deployment || git checkout -b deployment origin/deployment
+#           git reset --hard origin/deployment
+
+#       - name: Copy environment file
+#         run: |
+#           cd /home/ubuntu/smart-retail-management-system
+#           cp .env.production.example .env.production
+
+#       - name: Stop and remove containers
+#         run: |
+#           cd /home/ubuntu/smart-retail-management-system
+#           sudo docker compose down
+
+#       - name: Rebuild and restart with Docker Compose
+#         run: |
+#           cd /home/ubuntu/smart-retail-management-system
+#           sudo docker compose up --build -d
+
+name: 🛍️ Deploy App Smart Retail Management System
+
+on:
+  push:
+    branches: ["deployment"]
+  pull_request:
+    branches: ["deployment"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ⏭️ Skip tests (temporary)
+        run: echo "🧪 Tests skipped - will be implemented later"
+
+      # - name: 🟢 Set up Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: 20
+
+      # - name: 📦 Install dependencies
+      #   run: npm ci
+
+      # - name: 🧪 Run tests
+      #   run: npm run test
+
+  deploy:
+    runs-on: self-hosted
+    needs: test
+
+    steps:
+      - name: 🔄 Pull latest code
+        run: |
+          echo "📡 Fetching latest code from repository..."
+          cd /home/ubuntu/smart-retail-management-system
+          git fetch origin
+          git checkout deployment || git checkout -b deployment origin/deployment
+          git reset --hard origin/deployment
+          echo "✅ Code updated successfully"
+
+      - name: 📋 Copy environment file
+        run: |
+          echo "🔧 Setting up environment configuration..."
+          cd /home/ubuntu/smart-retail-management-system
+          cp .env.production.example .env.production
+          echo "✅ Environment file configured"
+
+      - name: 🔍 Check database and Redis status
+        id: check_services
+        run: |
+          echo "🔍 Checking database and Redis status..."
+          cd /home/ubuntu/smart-retail-management-system
+
+          # Check if db-postgres container is running and healthy
+          DB_STATUS="down"
+          if sudo docker ps --filter "name=db-postgres" --filter "status=running" --format "{{.Names}}" | grep -q "db-postgres"; then
+            echo "🗄️ Database container is running, checking connection..."
+            if sudo docker exec db-postgres pg_isready -U tuanthanh -d smart_store >/dev/null 2>&1; then
+              echo "✅ Database is healthy"
+              DB_STATUS="up"
+            else
+              echo "⚠️ Database container running but not accepting connections"
+            fi
+          else
+            echo "❌ Database container is not running"
+          fi
+
+          # Check if Redis container is running and healthy
+          REDIS_STATUS="down"
+          if sudo docker ps --filter "name=redis" --filter "status=running" --format "{{.Names}}" | grep -q "redis"; then
+            echo "🔴 Redis container is running, checking connection..."
+            if sudo docker exec redis redis-cli -a abc123xyz ping >/dev/null 2>&1; then
+              echo "✅ Redis is healthy"
+              REDIS_STATUS="up"
+            else
+              echo "⚠️ Redis container running but not accepting connections"
+            fi
+          else
+            echo "❌ Redis container is not running"
+          fi
+
+          echo "db_status=$DB_STATUS" >> $GITHUB_OUTPUT
+          echo "redis_status=$REDIS_STATUS" >> $GITHUB_OUTPUT
+
+      - name: 🛑 Stop application containers only
+        run: |
+          echo "🔄 Stopping application containers (keeping database and Redis if healthy)..."
+          cd /home/ubuntu/smart-retail-management-system
+
+          # Stop only application containers
+          if sudo docker ps --filter "name=api-system" --format "{{.Names}}" | grep -q "api-system"; then
+            echo "🛑 Stopping api-system..."
+            sudo docker stop api-system
+            sudo docker rm api-system
+          fi
+
+          if sudo docker ps --filter "name=console" --format "{{.Names}}" | grep -q "console"; then
+            echo "🛑 Stopping console..."
+            sudo docker stop console
+            sudo docker rm console
+          fi
+
+          echo "✅ Application containers stopped"
+
+      - name: 🛑 Stop and recreate database if unhealthy
+        if: steps.check_services.outputs.db_status == 'down'
+        run: |
+          echo "🔄 Database is unhealthy, stopping and will recreate..."
+          cd /home/ubuntu/smart-retail-management-system
+
+          if sudo docker ps -a --filter "name=db-postgres" --format "{{.Names}}" | grep -q "db-postgres"; then
+            sudo docker stop db-postgres || true
+            sudo docker rm db-postgres || true
+          fi
+
+          echo "✅ Database container removed"
+
+      - name: 🛑 Stop and recreate Redis if unhealthy
+        if: steps.check_services.outputs.redis_status == 'down'
+        run: |
+          echo "🔄 Redis is unhealthy, stopping and will recreate..."
+          cd /home/ubuntu/smart-retail-management-system
+
+          if sudo docker ps -a --filter "name=redis" --format "{{.Names}}" | grep -q "redis"; then
+            sudo docker stop redis || true
+            sudo docker rm redis || true
+          fi
+
+          echo "✅ Redis container removed"
+
+      - name: 🗑️ Clean up unused Docker resources
+        run: |
+          echo "🧹 Cleaning up unused Docker resources..."
+          sudo docker image prune -f
+          sudo docker container prune -f
+          sudo docker network prune -f
+          echo "✅ Docker cleanup completed"
+
+      - name: 🔨 Start database if needed
+        if: steps.check_services.outputs.db_status == 'down'
+        run: |
+          echo "🏗️ Starting database container..."
+          cd /home/ubuntu/smart-retail-management-system
+          sudo docker compose up -d db-postgres
+
+          echo "⏳ Waiting for database to be ready..."
+          timeout=60
+          while [ $timeout -gt 0 ]; do
+            if sudo docker exec db-postgres pg_isready -U tuanthanh -d smart_store >/dev/null 2>&1; then
+              echo "✅ Database is ready"
+              break
+            fi
+            echo "⏳ Waiting for database... ($timeout seconds left)"
+            sleep 2
+            timeout=$((timeout-2))
+          done
+
+          if [ $timeout -le 0 ]; then
+            echo "❌ Database failed to start within timeout"
+            exit 1
+          fi
+
+      - name: 🔨 Start Redis if needed
+        if: steps.check_services.outputs.redis_status == 'down'
+        run: |
+          echo "🏗️ Starting Redis container..."
+          cd /home/ubuntu/smart-retail-management-system
+          sudo docker compose up -d redis
+
+          echo "⏳ Waiting for Redis to be ready..."
+          timeout=30
+          while [ $timeout -gt 0 ]; do
+            if sudo docker exec redis redis-cli -a abc123xyz ping >/dev/null 2>&1; then
+              echo "✅ Redis is ready"
+              break
+            fi
+            echo "⏳ Waiting for Redis... ($timeout seconds left)"
+            sleep 2
+            timeout=$((timeout-2))
+          done
+
+          if [ $timeout -le 0 ]; then
+            echo "❌ Redis failed to start within timeout"
+            exit 1
+          fi
+
+      - name: 🔨 Build and start application containers
+        run: |
+          echo "🏗️ Building and starting application containers..."
+          cd /home/ubuntu/smart-retail-management-system
+
+          # Build and start api-system (always rebuild)
+          sudo docker compose up --build -d api-system
+
+          # Build and start console (always rebuild)
+          sudo docker compose up --build -d console
+
+          echo "✅ Application containers started successfully"
+
+      - name: ⏳ Wait for services to be ready
+        run: |
+          echo "⏳ Waiting for services to start..."
+          sleep 30
+
+          # Check if all containers are running
+          cd /home/ubuntu/smart-retail-management-system
+          if ! sudo docker compose ps | grep -E "(api-system|console|db-postgres|redis)" | grep -q "Up"; then
+            echo "❌ Some services failed to start"
+            sudo docker compose logs
+            exit 1
+          fi
+          echo "✅ All services are up and running"
+
+      - name: 🏥 Health check
+        run: |
+          echo "🔍 Performing health checks..."
+
+          # Check API health (adjust URL as needed)
+          if curl -f http://localhost:3000/health 2>/dev/null; then
+            echo "✅ API System is healthy"
+          else
+            echo "⚠️  API health check failed or endpoint not available"
+          fi
+
+          # Check Store Interface (adjust URL as needed)
+          if curl -f http://localhost:3268 2>/dev/null; then
+            echo "✅ Store Interface is accessible"
+          else
+            echo "⚠️  Store Interface health check failed"
+          fi
+
+          # Check Database
+          cd /home/ubuntu/smart-retail-management-system
+          if sudo docker exec db-postgres pg_isready -U tuanthanh -d smart_store >/dev/null 2>&1; then
+            echo "✅ Database is healthy"
+          else
+            echo "❌ Database health check failed"
+          fi
+
+          # Check Redis
+          if sudo docker exec redis redis-cli -a abc123xyz ping >/dev/null 2>&1; then
+            echo "✅ Redis is healthy"
+          else
+            echo "❌ Redis health check failed"
+          fi
+
+      - name: 📊 Show running containers
+        run: |
+          cd /home/ubuntu/smart-retail-management-system
+          echo "📋 Currently running containers:"
+          sudo docker compose ps
+
+      - name: 🎉 Deployment notification
+        run: |
+          echo "🚀 Deployment completed successfully!"
+          echo ""
+          echo "🌐 Services available at:"
+          echo "  🔌 API System: http://localhost:3000"
+          echo "  🛍️ Store Interface: http://localhost:3268"
+          echo "  🗄️ Database: localhost:5432"
+          echo "  🔴 Redis: localhost:6379"
+          echo ""
+          echo "✨ Smart Retail Management System is now live!"
+          echo ""
+          echo "📊 Service status:"
+          echo "  🗄️ Database: ${{ steps.check_services.outputs.db_status == 'up' && 'Reused existing' || 'Recreated' }}"
+          echo "  🔴 Redis: ${{ steps.check_services.outputs.redis_status == 'up' && 'Reused existing' || 'Recreated' }}"
+          echo "  🔌 API System: Rebuilt"
+          echo "  🛍️ Store Interface: Rebuilt"

@@ -1,6 +1,13 @@
+# Logs
+.vscode
+
+# Actions runner
+actions-runner/
+.github/key_pair.pem
+
+# dotenv environment variable files
+# .env.production
 # .env
-dist/
+
+# Dependency directories
 node_modules/
-documentation/
-.idea/
-.tmp.driveupload/s

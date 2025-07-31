@@ -1,0 +1,126 @@
+<html lang='vi'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Xác thực tài khoản - Smart Retail Management System</title>
+    <style>
+      /* Base styles */
+      body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background-color: #f5f7fa;
+        color: #333;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background: #2563eb;
+        padding: 25px;
+        text-align: center;
+        color: white;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+      .content {
+        padding: 30px;
+      }
+      .otp-container {
+        margin: 25px 0;
+        text-align: center;
+      }
+      .otp {
+        display: inline-block;
+        background: #f0f4ff;
+        color: #2563eb;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        padding: 15px 30px;
+        border-radius: 6px;
+        border: 1px dashed #2563eb;
+      }
+      .footer {
+        text-align: center;
+        padding: 20px;
+        font-size: 12px;
+        color: #666;
+        background: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+      }
+      .button {
+        display: inline-block;
+        background: #2563eb;
+        color: white !important;
+        text-decoration: none;
+        padding: 12px 25px;
+        border-radius: 6px;
+        font-weight: 500;
+        margin: 20px 0;
+      }
+      .note {
+        background: #fff8f0;
+        border-left: 4px solid #f59e0b;
+        padding: 12px;
+        margin: 20px 0;
+        border-radius: 0 4px 4px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='header'>
+        <div style='font-size: 48px; margin-bottom: 10px;'>🔐</div>
+        <h1>Xác thực tài khoản</h1>
+      </div>
+      <div class='content'>
+        <p>Xin chào <strong>{{fullName}}</strong> 👋,</p>
+
+        <p>📝 Cảm ơn bạn đã đăng ký tài khoản tại
+          <strong>Smart Retail Management System</strong>
+          - Giải pháp quản lý bán lẻ thông minh toàn diện.</p>
+
+        <p>🔑 Vui lòng sử dụng mã OTP dưới đây để xác thực tài khoản của bạn:</p>
+
+        <div class='otp-container'>
+          <div class='otp'>{{otp}}</div>
+          <p style='color: #666; margin-top: 10px; font-size: 14px;'>⏳ (Mã có
+            hiệu lực trong 2 phút)</p>
+        </div>
+
+        <div class='note'>
+          <strong>📌 Lưu ý quan trọng:</strong>
+          <ul style='margin: 8px 0 0 20px; padding: 0;'>
+            <li>🚫 Không chia sẻ mã OTP này với bất kỳ ai</li>
+            <li>⏱️ Mã OTP chỉ có hiệu lực trong 2 phút</li>
+            <li>❓ Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email này</li>
+          </ul>
+        </div>
+
+        <p>📧 Nếu bạn gặp bất kỳ khó khăn nào trong quá trình xác thực, vui lòng
+          liên hệ với bộ phận hỗ trợ của chúng tôi qua email
+          <a
+            href='mailto:support@srms.com'
+            style='color: #2563eb; text-decoration: none;'
+          >support@srms.com</a>.</p>
+
+        <p>Trân trọng,<br />Đội ngũ Smart Retail Management System 👋</p>
+      </div>
+      <div class='footer'>
+        <p>© 2025 Smart Retail Management System. Mọi quyền được bảo lưu.</p>
+        <p>📩 Đây là email tự động, vui lòng không trả lời trực tiếp vào email
+          này.</p>
+      </div>
+    </div>
+  </body>
+</html>
