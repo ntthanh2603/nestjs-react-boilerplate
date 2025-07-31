@@ -34,6 +34,7 @@ interface MembersTableProps {
   error: Error | null;
   searchParams: SearchMembersParams;
   onToggleBan: (memberId: string, isBanned: boolean) => void;
+  onUpdateRole: (memberId: string, newRole: RoleMember) => void;
 }
 
 export function MembersTable({
@@ -42,6 +43,7 @@ export function MembersTable({
   isError,
   error,
   onToggleBan,
+  onUpdateRole,
 }: MembersTableProps) {
   // Table columns definition
   const columns: ColumnDef<Member>[] = [
@@ -136,7 +138,25 @@ export function MembersTable({
                 Sao chép ID
               </DropdownMenuItem>
               <DropdownMenuItem>Xem chi tiết</DropdownMenuItem>
-              <DropdownMenuItem>Cấp quyền admin</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  onUpdateRole(
+                    member.id,
+                    member.roleMember === RoleMember.ADMIN
+                      ? RoleMember.USER
+                      : RoleMember.ADMIN
+                  )
+                }
+                className={
+                  member.roleMember === RoleMember.ADMIN
+                    ? "text-yellow-600"
+                    : "text-purple-600"
+                }
+              >
+                {member.roleMember === RoleMember.ADMIN
+                  ? "Xóa quyền admin"
+                  : "Cấp quyền admin"}
+              </DropdownMenuItem>
               <DropdownMenuItem
                 className={member.isBanned ? "text-green-600" : "text-red-500"}
                 onClick={() => onToggleBan(member.id, member.isBanned)}

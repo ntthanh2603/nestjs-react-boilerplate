@@ -63,6 +63,14 @@ async function toggleMemberBanStatus(memberId: string, isBanned: boolean) {
   return response.data;
 }
 
+async function updateMemberRole(memberId: string, role: RoleMember) {
+  const response = await axiosInstance.patch("members/role", {
+    memberId,
+    roleMember: role,
+  });
+  return response.data;
+}
+
 export function useMembers(searchParams: MemberSearchParams) {
   const queryClient = useQueryClient();
 
@@ -90,6 +98,19 @@ export function useMembers(searchParams: MemberSearchParams) {
     },
   });
 
+  // Update role mutation
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ memberId, role }: { memberId: string; role: RoleMember }) =>
+      updateMemberRole(memberId, role),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["members"] });
+      customToast.success("Cập nhật quyền thành viên thành công!");
+    },
+    onError: () => {
+      customToast.error("Cập nhật quyền thành viên thất bại");
+    },
+  });
+
   // Manual refresh function
   const handleRefresh = async () => {
     try {
@@ -111,9 +132,11 @@ export function useMembers(searchParams: MemberSearchParams) {
 
     // Actions
     toggleMemberBan: toggleBanMutation.mutate,
+    updateMemberRole: updateRoleMutation.mutate,
     handleRefresh,
 
     // Loading states
     isTogglingBan: toggleBanMutation.isPending,
+    isUpdatingRole: updateRoleMutation.isPending,
   };
 }

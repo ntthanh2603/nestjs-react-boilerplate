@@ -4,6 +4,7 @@ import { MembersFilters } from "@/components/admin/members/members-filters";
 import { MembersTable } from "@/components/admin/members/members-table";
 import { MembersPagination } from "@/components/admin/members/members-pagination";
 import { MembersErrorBoundary } from "@/components/admin/members/members-error-boundary";
+import type { RoleMember } from "@/types/enums/enum";
 
 function MembersPage() {
   const [searchParams, setSearchParams] = useSearchMembersParams();
@@ -16,6 +17,7 @@ function MembersPage() {
     error,
     isRefetching,
     toggleMemberBan,
+    updateMemberRole,
     handleRefresh,
   } = useMembers(searchParams);
 
@@ -39,6 +41,11 @@ function MembersPage() {
     toggleMemberBan({ memberId, isBanned });
   };
 
+  // Handle update role
+  const handleUpdateRole = (memberId: string, newRole: RoleMember) => {
+    updateMemberRole({ memberId, role: newRole });
+  };
+
   return (
     <div className="pr-3 pl-3 space-y-4">
       {/* Filters */}
@@ -58,6 +65,7 @@ function MembersPage() {
         error={error}
         searchParams={searchParams}
         onToggleBan={handleToggleBan}
+        onUpdateRole={handleUpdateRole}
       />
 
       {/* Pagination */}
