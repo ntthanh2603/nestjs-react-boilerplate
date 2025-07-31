@@ -174,16 +174,6 @@ export class FilterSearchMemberDto extends PartialType(GetManyBaseQueryParams) {
   search?: string;
 
   @ApiProperty({ required: false })
-  @IsUUID('4', { message: 'storeId must be UUID' })
-  @IsOptional()
-  storeId?: string;
-
-  @ApiProperty({ required: false })
-  @IsUUID('4', { message: 'workBranchId must be UUID' })
-  @IsOptional()
-  workBranchId?: string;
-
-  @ApiProperty({ required: false })
   @IsEnum(RoleMember)
   @IsOptional()
   roleMember?: RoleMember;
@@ -282,4 +272,10 @@ export class UpdateProfileByHigherPrivilegeThanDto {
   @ApiProperty()
   @IsObject()
   address: AddressDto;
+}
+
+export class SignUpAdminDto {
+  @ApiProperty()
+  @IsUUID('4', { message: 'MemberId must be UUID' })
+  id: string;
 }

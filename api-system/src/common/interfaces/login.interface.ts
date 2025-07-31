@@ -4,8 +4,6 @@ export interface LoginMetadata {
   ipAddress: string;
   ua: string;
   deviceId: string;
-  storeId?: string;
-  workBranchId?: string;
 }
 
 export interface LoginResponse {

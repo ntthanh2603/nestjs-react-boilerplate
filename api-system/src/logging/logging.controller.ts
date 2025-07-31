@@ -1,32 +1,31 @@
 import { Controller } from '@nestjs/common';
-import { LogNestService } from './log-nest.service';
+import { LoggingService } from './logging.service';
 import { ApiTags } from '@nestjs/swagger';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/auth.guard';
 import { Get, Query } from '@nestjs/common';
 import { Member } from 'src/common/decorators/app.decorator';
 import { IMember } from 'src/common/interfaces/app.interface';
-import { FilterSearchLogDto } from './dto/log-nest.dto';
+import { FilterSearchLogDto } from './dto/logging.dto';
 import { Doc } from 'src/common/doc/doc.decorator';
 import { GetManyBaseResponseDto } from 'src/common/dtos/get-many-base.dto';
-import { LogNest } from './entities/log-nest.entity';
-import { Throttle } from '@nestjs/throttler';
+import { Logging } from './entities/logging.entity';
 
 @ApiTags('Log')
-@Controller('log-nest')
-export class LogNestController {
-  constructor(private readonly logNestService: LogNestService) {}
+@Controller('logging')
+export class LoggingController {
+  constructor(private readonly loggingService: LoggingService) {}
 
   @Doc({
     summary: 'Get logs by member id, Role: Member',
     description: 'Get logs by member id. Return a list of log objects',
     response: {
-      serialization: GetManyBaseResponseDto<LogNest>,
+      serialization: GetManyBaseResponseDto<Logging>,
     },
   })
   @UseGuards(JwtAuthGuard)
   @Get()
   getLogs(@Member() member: IMember, @Query() query: FilterSearchLogDto) {
-    return this.logNestService.getLogsByMemberId(member, query);
+    return this.loggingService.getLogsByMemberId(member, query);
   }
 }

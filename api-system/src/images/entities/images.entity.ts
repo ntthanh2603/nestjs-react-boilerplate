@@ -1,14 +1,8 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 import { BaseEntity } from 'src/common/entities/base.entity';
-import { LinkType } from 'src/common/enums/enum';
+import { Members } from 'src/modules/members/entities/member.entity';
 
 @Entity('images')
 export class Images extends BaseEntity {
@@ -27,13 +21,10 @@ export class Images extends BaseEntity {
   @Column({ nullable: true })
   description?: string;
 
-  @IsString()
-  @ApiProperty()
-  @Column({ nullable: true })
-  linkId?: string;
+  @Column()
+  userId: string;
 
-  @IsString()
-  @ApiProperty()
-  @Column({ nullable: true })
-  linkType?: LinkType;
+  @OneToOne(() => Members, (member) => member.image)
+  @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
+  member: Members;
 }

@@ -1,9 +1,10 @@
 import { BaseEntity } from 'src/common/entities/base.entity';
 import { Column, Entity } from 'typeorm';
 import DeviceSessionEntity from 'src/modules/auth/entities/device-session.entity';
-import { LogNest } from 'src/log-nest/entities/log-nest.entity';
+import { Logging } from 'src/logging/entities/logging.entity';
 import { OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { Gender, RoleMember } from 'src/common/enums/enum';
+import { Images } from 'src/images/entities/images.entity';
 
 @Entity('members')
 export class Members extends BaseEntity {
@@ -70,6 +71,10 @@ export class Members extends BaseEntity {
   @Column('text', { name: 'work_branch_id', nullable: true })
   workBranchId?: string;
 
-  @OneToMany(() => LogNest, (logNest) => logNest.member)
-  logNest: LogNest[];
+  @OneToMany(() => Logging, (logging) => logging.member)
+  logging: Logging[];
+
+  @OneToOne(() => Images, (images) => images.member)
+  @JoinColumn({ name: 'image_id', referencedColumnName: 'id' })
+  image: Images;
 }

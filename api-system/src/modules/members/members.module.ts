@@ -6,8 +6,8 @@ import { Members } from './entities/member.entity';
 import { AuthModule } from '../auth/auth.module';
 import { RedisModule } from 'src/redis/redis.module';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { LogNestModule } from 'src/log-nest/log-nest.module';
 import { ImagesModule } from 'src/images/images.module';
+import { LoggingModule } from 'src/logging/logging.module';
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { ImagesModule } from 'src/images/images.module';
     RedisModule,
     MailerModule,
     ImagesModule,
-    forwardRef(() => LogNestModule),
+    forwardRef(() => LoggingModule),
   ],
   controllers: [MembersController],
   providers: [MembersService],

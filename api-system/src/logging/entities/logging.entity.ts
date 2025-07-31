@@ -2,8 +2,8 @@ import { BaseEntity } from 'src/common/entities/base.entity';
 import { Members } from 'src/modules/members/entities/member.entity';
 import { Column, Entity, ManyToOne, JoinColumn } from 'typeorm';
 
-@Entity({ name: 'log_nest' })
-export class LogNest extends BaseEntity {
+@Entity({ name: 'logging' })
+export class Logging extends BaseEntity {
   @Column({ type: 'text' })
   action: string;
 
@@ -19,7 +19,7 @@ export class LogNest extends BaseEntity {
   @Column({ type: 'text', name: 'member_id' })
   memberId: string;
 
-  @ManyToOne(() => Members, (member) => member.logNest)
+  @ManyToOne(() => Members, (member) => member.logging)
   @JoinColumn({ name: 'member_id' })
   member: Members;
 }

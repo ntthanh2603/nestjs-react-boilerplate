@@ -20,6 +20,7 @@ import {
   GetMemberResponseDto,
   SignInMemberStep1Dto,
   SignInMemberStep2Dto,
+  SignUpAdminDto,
   SignUpMemberDto,
   UpdateMySettingDto,
   UpdateProfileByHigherPrivilegeThanDto,
@@ -40,7 +41,6 @@ import { RoleMember } from 'src/common/enums/enum';
 import { Members } from './entities/member.entity';
 import { FilterSearchMemberDto } from './dto/member.dto';
 import { EXPIRED_REFRESH_TOKEN } from 'src/common/constants/app.constants';
-import { LogNestService } from 'src/log-nest/log-nest.service';
 import { Admin } from 'src/common/decorators/app.decorator';
 import { IdQueryParamDto } from 'src/common/dtos/id-query-param.dto';
 import { Throttle } from '@nestjs/throttler';
@@ -51,7 +51,6 @@ export class MembersController {
   constructor(
     private readonly membersService: MembersService,
     private readonly authService: AuthService,
-    private readonly logNestService: LogNestService,
   ) {}
 
   @Doc({
@@ -81,83 +80,35 @@ export class MembersController {
   }
 
   @Doc({
-    summary: 'Filter search member. Role: ADMIN',
+    summary: 'Filter search member. Role: Member',
     description: 'Filter search member. Return a list of member objects',
     response: {
       serialization: GetManyBaseResponseDto<Members>,
     },
   })
   @Get('/filter-search-members')
-  @Role(RoleMember.ADMIN)
   @UseGuards(JwtAuthGuard)
   filterSearchMembers(@Query() query: FilterSearchMemberDto) {
     return this.membersService.filterSearchMembers(query);
   }
 
   @Doc({
-    summary: 'Sign up admin. Role: ADMIN',
+    summary: 'Add role admin. Role: ADMIN',
     description:
-      'Sign up an admin with email and password. Return a default message response object',
+      'Add role admin to member. Return a default message response object',
     response: {
       serialization: DefaultMessageResponseDto,
     },
   })
-  @Post('/sign-up-admin')
+  @Post('/add-role-admin')
   @UseGuards(JwtAuthGuard)
   @Role(RoleMember.ADMIN)
-  async signUpAdmin(@Admin() admin: IMember, @Body() dto: SignUpMemberDto) {
-    try {
-      const result = await this.membersService.signUpAdmin(admin, dto);
-      await this.logNestService.createLog({
-        memberId: admin.id,
-        action: 'Tạo tài khoản admin',
-        context: 'MEMBERS',
-        status: 'SUCCESS',
-        details: {
-          memberId: result.id,
-          email: result.email,
-          fullName: result.fullName,
-        },
-      });
-      return {
-        message: 'Success',
-      };
-    } catch (e) {
-      throw e;
-    }
-  }
+  async addRoleAdmin(@Admin() admin: IMember, @Body() dto: SignUpAdminDto) {
+    await this.membersService.addRoleAdmin(admin, dto);
 
-  @Doc({
-    summary: 'Sign up owner. Role: ADMIN',
-    description:
-      'Sign up an owner with email and password. Return a default message response object',
-    response: {
-      serialization: DefaultMessageResponseDto,
-    },
-  })
-  @Post('/sign-up-owner')
-  @UseGuards(JwtAuthGuard)
-  @Role(RoleMember.ADMIN)
-  async signUpOwner(@Admin() admin: IMember, @Body() dto: SignUpMemberDto) {
-    try {
-      const result = await this.membersService.signUpOwner(dto);
-      await this.logNestService.createLog({
-        memberId: admin.id,
-        action: 'Tạo tài khoản chủ cửa hàng',
-        context: 'MEMBERS',
-        status: 'SUCCESS',
-        details: {
-          memberId: result.id,
-          email: result.email,
-          fullName: result.fullName,
-        },
-      });
-      return {
-        message: 'Success',
-      };
-    } catch (e) {
-      throw e;
-    }
+    return {
+      message: 'Success',
+    };
   }
 
   @Doc({
@@ -272,7 +223,7 @@ export class MembersController {
   }
 
   @Doc({
-    summary: 'Update is banned member. Role: ADMIN, OWNER',
+    summary: 'Update is banned member. Role: ADMIN',
     description:
       'Update is banned member. Return a message to confirm the operation',
     response: {
@@ -281,22 +232,13 @@ export class MembersController {
   })
   @Patch('/update-is-banned-member')
   @UseGuards(JwtAuthGuard)
-  @Role(RoleMember.ADMIN, RoleMember.OWNER)
+  @Role(RoleMember.ADMIN)
   async updateIsBanned(
-    @Member() member: IMember,
+    @Admin() admin: IMember,
     @Body() dto: BanMemberDto,
   ): Promise<DefaultMessageResponseDto> {
-    await this.membersService.updateIsBanned(member, dto);
-    await this.logNestService.createLog({
-      memberId: member.id,
-      action: 'Cập nhật trạng thái khóa tài khoản',
-      context: 'MEMBERS',
-      status: 'SUCCESS',
-      details: {
-        memberId: dto.memberId,
-        isBanned: dto.isBanned,
-      },
-    });
+    await this.membersService.updateIsBanned(admin, dto);
+
     return {
       message: 'Success',
     };
@@ -316,56 +258,7 @@ export class MembersController {
     @Body() dto: UpdateMySettingDto,
   ): Promise<DefaultMessageResponseDto> {
     await this.membersService.updateMySetting(member, dto);
-    await this.logNestService.createLog({
-      memberId: member.id,
-      action: 'Cập nhật thông tin cá nhân',
-      context: 'MEMBERS',
-      status: 'SUCCESS',
-      details: {
-        memberId: member.id,
-        fullName: member.fullName,
-        email: member.email,
-        phoneNumber: member.phoneNumber,
-      },
-    });
-    return {
-      message: 'Success',
-    };
-  }
 
-  @Doc({
-    summary: 'Update profile by higher privilege than. Role: ADMIN, OWNER',
-    description:
-      'Update profile by higher privilege than. Return a message to confirm the operation',
-    response: {
-      serialization: DefaultMessageResponseDto,
-    },
-  })
-  @Patch('/update-profile-by-higher-privilege-than/:id')
-  @UseGuards(JwtAuthGuard)
-  @Role(RoleMember.ADMIN, RoleMember.OWNER)
-  async updateProfileByHigherPrivilegeThan(
-    @Member() member: IMember,
-    @Param() { id }: IdQueryParamDto,
-    @Body() dto: UpdateProfileByHigherPrivilegeThanDto,
-  ): Promise<DefaultMessageResponseDto> {
-    await this.membersService.updateProfileByHigherPrivilegeThan(
-      member,
-      dto,
-      id,
-    );
-    await this.logNestService.createLog({
-      memberId: member.id,
-      action: 'Cập nhật thông tin cá nhân',
-      context: 'MEMBERS',
-      status: 'SUCCESS',
-      details: {
-        memberId: member.id,
-        fullName: member.fullName,
-        email: member.email,
-        phoneNumber: member.phoneNumber,
-      },
-    });
     return {
       message: 'Success',
     };

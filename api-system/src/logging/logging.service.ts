@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { LogNest } from './entities/log-nest.entity';
+import { Logging } from './entities/logging.entity';
 import { GetManyBaseResponseDto } from 'src/common/dtos/get-many-base.dto';
 import { getManyResponse } from 'src/common/dtos/get-many-response';
 import { MembersService } from 'src/modules/members/members.service';
-import { FilterSearchLogDto } from './dto/log-nest.dto';
+import { FilterSearchLogDto } from './dto/logging.dto';
 import { IMember } from 'src/common/interfaces/app.interface';
 
 export interface ActionParams {
@@ -17,10 +17,10 @@ export interface ActionParams {
 }
 
 @Injectable()
-export class LogNestService {
+export class LoggingService {
   constructor(
-    @InjectRepository(LogNest)
-    private readonly logNestRepository: Repository<LogNest>,
+    @InjectRepository(Logging)
+    private readonly loggingRepository: Repository<Logging>,
     private readonly membersService: MembersService,
   ) {}
 
@@ -29,8 +29,8 @@ export class LogNestService {
    * @param params
    * @returns
    */
-  async createLog(params: ActionParams): Promise<LogNest> {
-    return await this.logNestRepository.save(params);
+  async createLog(params: ActionParams): Promise<Logging> {
+    return await this.loggingRepository.save(params);
   }
 
   /**
@@ -42,12 +42,14 @@ export class LogNestService {
   async getLogsByMemberId(
     member: IMember,
     query: FilterSearchLogDto,
-  ): Promise<GetManyBaseResponseDto<LogNest>> {
+  ): Promise<GetManyBaseResponseDto<Logging>> {
+    const memberOther = await this.membersService.findOneById(query.memberId);
+
     // Check permission if trying to access other member's logs
     if (member.id !== query.memberId) {
       const hasPermission = await this.membersService.hasHigherPrivilegeThan(
-        member.id,
-        query.memberId,
+        member,
+        memberOther,
       );
       if (!hasPermission) {
         throw new BadRequestException(
@@ -60,12 +62,12 @@ export class LogNestService {
     let { sortBy } = query;
 
     // Validate sortBy field
-    if (!(sortBy in LogNest)) {
+    if (!(sortBy in Logging)) {
       sortBy = 'createdAt';
     }
 
     // Create query builder
-    const queryBuilder = this.logNestRepository
+    const queryBuilder = this.loggingRepository
       .createQueryBuilder('log')
       .leftJoinAndSelect('log.member', 'member')
       .where('log.memberId = :memberId', { memberId: query.memberId });

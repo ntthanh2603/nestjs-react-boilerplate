@@ -8,11 +8,3 @@ export enum Gender {
   FEMALE = 'female',
   OTHER = 'other',
 }
-
-export enum LinkType {
-  MEMBER = 'member',
-
-  // Link type for entity Images
-  WORK_BRANCH = 'workBranch',
-  STORE = 'store',
-}

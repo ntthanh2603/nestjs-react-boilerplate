@@ -8,7 +8,7 @@ import { diskStorage } from 'multer';
 import * as path from 'path';
 import { BadRequestException } from '@nestjs/common';
 import { Global } from '@nestjs/common';
-import { LogNestModule } from 'src/log-nest/log-nest.module';
+import { LoggingModule } from 'src/logging/logging.module';
 
 @Global()
 @Module({
@@ -40,7 +40,7 @@ import { LogNestModule } from 'src/log-nest/log-nest.module';
         }
       },
     }),
-    LogNestModule,
+    LoggingModule,
   ],
   controllers: [ImagesController],
   providers: [ImagesService],

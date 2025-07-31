@@ -1,23 +1,21 @@
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
-  InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Members } from './entities/member.entity';
 import {
-  SignUpMemberDto,
   SignInMemberStep1Dto,
   SignInMemberStep2Dto,
   BanMemberDto,
   UpdateMySettingDto,
-  UpdateProfileByHigherPrivilegeThanDto,
+  SignUpAdminDto,
 } from './dto/member.dto';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { LinkType, RoleMember } from 'src/common/enums/enum';
+import { RoleMember } from 'src/common/enums/enum';
 import { AuthService } from '../auth/auth.service';
 import { LoginMetadata } from 'src/common/interfaces/login.interface';
 import { RedisService } from 'src/redis/redis.service';
@@ -53,7 +51,6 @@ export class MembersService implements OnModuleInit {
    * Sign up first admin
    *
    * @returns a default message response object
-   * @throws {ConflictException} if the email address is already used
    */
   private async signUpFirstAdmin(): Promise<void> {
     const EMAIL_ADMIN_ROOT = process.env.EMAIL_ADMIN_ROOT;
@@ -102,12 +99,9 @@ export class MembersService implements OnModuleInit {
     if (!member || Object.keys(member).length === 0) {
       const memberDb = await this.memberRepository.findOne({
         where: { id },
+        relations: ['image'],
       });
-      const image = await this.imagesService.findByLinkTypeAndLinkId(
-        LinkType.MEMBER,
-        id,
-      );
-      member = { ...memberDb, image };
+      member = { ...memberDb };
       const redisMember = { ...member };
       await this.redisService.hMSet(`member:${id}`, redisMember);
 
@@ -116,7 +110,7 @@ export class MembersService implements OnModuleInit {
       const { password: _, salt: __, ...memberResponse } = member;
 
       if (memberResponse.idBanned) {
-        throw new UnauthorizedException('Tài khoản đã bị khóa');
+        throw new UnauthorizedException('Account is banned');
       }
       return {
         ...memberResponse,
@@ -125,7 +119,7 @@ export class MembersService implements OnModuleInit {
       const { password: _, salt: __, ...memberResponse } = member;
 
       if (memberResponse.idBanned) {
-        throw new UnauthorizedException('Tài khoản đã bị khóa');
+        throw new UnauthorizedException('Account is banned');
       }
 
       return {
@@ -151,22 +145,13 @@ export class MembersService implements OnModuleInit {
       isBanned,
       sortOrder,
       sortBy,
-      storeId,
-      workBranchId,
     } = queryDto;
 
     // Build the base query
     const query = this.memberRepository
       .createQueryBuilder('member')
-      .leftJoinAndSelect('member.store', 'store')
-      .leftJoinAndSelect('member.workBranch', 'workBranch');
+      .leftJoinAndSelect('member.image', 'image');
 
-    if (storeId) {
-      query.andWhere('store.id = :storeId', { storeId });
-    }
-    if (workBranchId) {
-      query.andWhere('workBranch.id = :workBranchId', { workBranchId });
-    }
     // Apply search filter if provided
     if (search) {
       query.andWhere(
@@ -197,17 +182,6 @@ export class MembersService implements OnModuleInit {
     const skip = (page - 1) * limit;
     const members = await query.skip(skip).take(limit).getMany();
 
-    // Get all member images in a single query
-    const memberIds = members.map((member) => member.id);
-    const memberImages =
-      memberIds.length > 0 ? await this.getMemberImages(memberIds) : {};
-
-    // Map members to include their images
-    const membersWithImages = members.map((member) => ({
-      ...member,
-      image: memberImages[member.id] || null,
-    }));
-
     return getManyResponse(
       {
         page,
@@ -215,33 +189,9 @@ export class MembersService implements OnModuleInit {
         sortBy: sortBy || 'createdAt',
         sortOrder,
       },
-      membersWithImages,
+      members,
       total,
     );
-  }
-
-  /**
-   * Get member images
-   *
-   * @param memberIds the IDs of the members
-   * @returns a promise resolving to an object mapping member IDs to their images
-   */
-  private async getMemberImages(
-    memberIds: string[],
-  ): Promise<Record<string, Images>> {
-    if (memberIds.length === 0) return {};
-
-    const images = await this.imagesService.findManyByLinkTypeAndLinkIds(
-      LinkType.MEMBER,
-      memberIds,
-    );
-
-    return images.reduce<Record<string, Images>>((acc, image) => {
-      if (image.linkId) {
-        acc[image.linkId] = image;
-      }
-      return acc;
-    }, {});
   }
 
   /**
@@ -251,36 +201,23 @@ export class MembersService implements OnModuleInit {
    * @returns a default message response object
    * @throws {ConflictException} if the email address is already used
    */
-  public async signUpAdmin(
+  public async addRoleAdmin(
     admin: IMember,
-    dto: SignUpMemberDto,
+    dto: SignUpAdminDto,
   ): Promise<Members> {
     if (admin.email !== process.env.EMAIL_ADMIN_ROOT) {
-      throw new UnauthorizedException('Bạn không có quyền tạo tài khoản admin');
+      throw new UnauthorizedException(
+        'You do not have permission to create an admin account',
+      );
     }
-    const member = await this.memberRepository.count({
-      where: { email: dto.email },
+    const member = await this.memberRepository.findOne({
+      where: { id: dto.id },
     });
-    if (member > 0) {
-      throw new ConflictException('Email đã được sử dụng');
+    if (!member) {
+      throw new NotFoundException('Member is not found');
     }
-    const salt = await bcrypt.genSalt();
-    const id = uuidv4();
-
-    try {
-      return await this.memberRepository.save({
-        ...dto,
-        id,
-        password: await this.hashPassword(dto.password, salt),
-        salt,
-        roleMember: RoleMember.ADMIN,
-      });
-    } catch (e) {
-      if (e instanceof ConflictException) {
-        throw new ConflictException(e.message);
-      }
-      throw new InternalServerErrorException();
-    }
+    member.roleMember = RoleMember.ADMIN;
+    return await this.memberRepository.save(member);
   }
 
   /**
@@ -301,29 +238,24 @@ export class MembersService implements OnModuleInit {
   ) {
     let member: IMember | null = await this.memberRepository.findOne({
       where: { email, roleMember },
-      relations: ['store', 'workBranch'],
+      relations: ['image'],
     });
 
     if (!member) {
-      throw new UnauthorizedException('Tài khoản không tồn tại');
+      throw new NotFoundException('Account not found');
     }
-    const image = await this.imagesService.findByLinkTypeAndLinkId(
-      LinkType.MEMBER,
-      member.id,
-    );
-    member = { ...member, image: image || undefined };
 
     // If member not found or password is incorrect
     if (
       !member ||
       member.password !== (await this.hashPassword(password, member.salt!))
     ) {
-      throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
+      throw new UnauthorizedException('Email or password is incorrect');
     }
 
     // If 2FA is required but not enabled for the member
     if (require2FA && !member.is2FA) {
-      throw new UnauthorizedException('2FA không được bật');
+      throw new UnauthorizedException('2FA is not enabled');
     }
 
     return member;
@@ -342,22 +274,10 @@ export class MembersService implements OnModuleInit {
     member: IMember,
     metaData: LoginMetadata,
   ) {
-    let sessionData = { ...metaData };
-
-    // Add role-specific data
-    if (member.roleMember === RoleMember.OWNER && member.storeId) {
-      sessionData = { ...sessionData, storeId: member.storeId };
-    } else if (
-      member.roleMember === RoleMember.EMPLOYEE &&
-      member.workBranchId
-    ) {
-      sessionData = { ...sessionData, workBranchId: member.workBranchId };
-    }
-
     const newDeviceSession = await this.authService.handleDeviceSession(
       member.id,
       member.roleMember,
-      sessionData,
+      metaData,
     );
 
     const { password: _, salt: __, ...memberResponse } = member;
@@ -403,15 +323,15 @@ export class MembersService implements OnModuleInit {
 
       await this.mailService.sendMail({
         to: email!,
-        subject: 'Xác thực tài khoản',
-        template: 'send-otp-sign-up',
+        subject: 'Authentication account',
+        template: 'send-otp-authentication',
         context: {
           otp,
           fullName: member.fullName,
         },
       });
 
-      return { message: 'Mã OTP đã được gửi đến email của bạn' };
+      return { message: 'OTP has been sent to your email' };
     }
 
     // If 2FA is disabled, proceed with login
@@ -436,7 +356,7 @@ export class MembersService implements OnModuleInit {
     // Verify OTP first
     const storedOtp = await this.redisService.get(`otp:${email}`);
     if (storedOtp !== otp) {
-      throw new UnauthorizedException('Mã OTP không chính xác');
+      throw new UnauthorizedException('OTP not correct');
     }
 
     // Verify credentials with 2FA required
@@ -455,47 +375,13 @@ export class MembersService implements OnModuleInit {
   }
 
   /**
-   * Sign up an owner
-   *
-   * @param dto the data transfer object with the owner's data
-   * @returns a default message response object
-   * @throws {ConflictException} if the email address is already used
-   */
-  public async signUpOwner(dto: SignUpMemberDto) {
-    const member = await this.memberRepository.count({
-      where: { email: dto.email },
-    });
-    if (member > 0) {
-      throw new ConflictException('Email đã được sử dụng');
-    }
-    const salt = await bcrypt.genSalt();
-    const id = uuidv4();
-
-    const password = await this.hashPassword(dto.password!, salt);
-
-    try {
-      return await this.memberRepository.save({
-        ...dto,
-        id,
-        password,
-        salt,
-        roleMember: RoleMember.OWNER,
-      });
-    } catch (e) {
-      if (e instanceof ConflictException) {
-        throw new ConflictException(e.message);
-      }
-      throw new InternalServerErrorException();
-    }
-  }
-
-  /**
-   * Update isBanned
+   * Update is banned member by Admin
    *
    * @param member the member object
-   * @param dto the data transfer object with the isBanned value
+   * @param dto the data transfer object with the is banned value
    * @returns a default message response object
-   * @throws {BadRequestException} if the member is not found or the member is an admin
+   * @throws {NotFoundException} if the member is not found
+   * @throws {BadRequestException} if the member does not have permission to change the target member
    */
   public async updateIsBanned(
     member: IMember,
@@ -503,15 +389,19 @@ export class MembersService implements OnModuleInit {
   ): Promise<void> {
     const { memberId, isBanned } = dto;
 
+    const memberOther = await this.findOneById(memberId);
+    if (!memberOther) {
+      throw new NotFoundException('Account not found');
+    }
     // Check if the current member has higher privilege than the target member
     const hasPermission = await this.hasHigherPrivilegeThan(
-      member.id,
-      memberId,
+      member,
+      memberOther,
     );
 
     if (!hasPermission) {
       throw new BadRequestException(
-        'Bạn không có quyền thay đổi tài khoản này',
+        'You do not have permission to change this account',
       );
     }
 
@@ -533,7 +423,7 @@ export class MembersService implements OnModuleInit {
     const { password, ...rest } = dto;
     const memberUpdate = await this.findOneById(member.id);
     if (!memberUpdate) {
-      throw new BadRequestException('Tài khoản không tồn tại');
+      throw new BadRequestException('Account not found');
     }
     if (password) {
       const salt = await bcrypt.genSalt();
@@ -561,25 +451,16 @@ export class MembersService implements OnModuleInit {
   /**
    * Check if member has higher privilege than other member
    *
-   * @param memberId the member id
-   * @param memberOtherId the other member id
+   * @param member the member object
+   * @param memberOther the other member object
    * @returns a boolean value
    */
   public async hasHigherPrivilegeThan(
-    memberId: string,
-    memberOtherId: string,
+    member: IMember,
+    memberOther: IMember,
   ): Promise<boolean> {
     // If same member, no permission
-    if (memberId === memberOtherId) {
-      return false;
-    }
-    // Get member info
-    const member = await this.memberRepository.findOne({
-      where: { id: memberId },
-      select: ['id', 'email', 'roleMember', 'storeId'],
-    });
-
-    if (!member) {
+    if (member.id === memberOther.id) {
       return false;
     }
 
@@ -588,57 +469,12 @@ export class MembersService implements OnModuleInit {
       return true;
     }
 
-    // Get other member's info
-    const memberOther = await this.memberRepository.findOne({
-      where: { id: memberOtherId },
-      select: ['id', 'roleMember'],
-    });
-
-    if (!memberOther) {
-      return false;
-    }
-
     // Admin can ban employees and owners (but not other admins)
     if (member.roleMember === RoleMember.ADMIN) {
       return memberOther.roleMember !== RoleMember.ADMIN;
     }
 
-    // Owner can only ban employees in their store
-    if (member.roleMember === RoleMember.OWNER && member.storeId) {
-      if (memberOther.roleMember !== RoleMember.EMPLOYEE) {
-        return false;
-      }
-
-      const count = await this.memberRepository
-        .createQueryBuilder('members')
-        .leftJoin('members.work_branch_employees', 'work_branch_employee')
-        .leftJoin('work_branch_employee.workBranch', 'work_branch')
-        .where('work_branch.storeId = :storeId', { storeId: member.storeId })
-        .andWhere('members.id = :memberId', { memberId: memberOtherId })
-        .getCount();
-
-      return count > 0;
-    }
-
     // Employees can't ban anyone
     return false;
-  }
-
-  public async updateProfileByHigherPrivilegeThan(
-    member: IMember,
-    dto: UpdateProfileByHigherPrivilegeThanDto,
-    id: string,
-  ) {
-    const isHigherPrivilegeThan = this.hasHigherPrivilegeThan(member.id, id);
-    if (!isHigherPrivilegeThan) {
-      throw new BadRequestException(
-        'Bạn không có quyền thay đổi tài khoản này',
-      );
-    }
-    await this.memberRepository.update({ id }, dto);
-    await this.redisService.del(`member:${id}`);
-    return {
-      message: 'Success',
-    };
   }
 }

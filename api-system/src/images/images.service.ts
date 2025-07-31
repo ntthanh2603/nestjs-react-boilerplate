@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import * as Minio from 'minio';
 import * as fs from 'fs';
 import { Images } from './entities/images.entity';
@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import * as path from 'path';
 import { DefaultMessageResponseDto } from 'src/common/dtos/default-message-response.dto';
 import { type UploadImageMetaData } from './images.interface';
-import { LinkType } from 'src/common/enums/enum';
 import { IMember } from 'src/common/interfaces/app.interface';
 
 @Injectable()
@@ -99,8 +98,7 @@ export class ImagesService {
       const ext = path.extname(file.filename);
       image.filename = `${image.id}${ext}`;
       image.description = meta.description;
-      image.linkId = meta.linkId!;
-      image.linkType = meta.linkType;
+      image.userId = meta.userId!;
 
       // Upload file to MinIO
       const metaData = {
@@ -182,53 +180,6 @@ export class ImagesService {
   }
 
   /**
-   * Finds an image by its ID from the database.
-   *
-   * @param {string} id - The ID of the image to be found.
-   * @throws {NotFoundException} Throws if the image is not found in the database.
-   * @returns {Promise<Images | null>} A promise that resolves to the found image or null if not found.
-   */
-  private async findOne(id: string): Promise<Images | null> {
-    return await this.imageRepo.findOneBy({ id });
-  }
-
-  /**
-   * Finds an image by its link type and link ID from the database.
-   *
-   * @param {LinkType} linkType - The type of the link.
-   * @param {string} linkId - The ID of the link.
-   * @returns {Promise<Images | null>} A promise that resolves to the found image or null if not found.
-   */
-  public async findByLinkTypeAndLinkId(
-    linkType: LinkType,
-    linkId: string,
-  ): Promise<Images | null> {
-    return await this.imageRepo.findOneBy({
-      linkType,
-      linkId,
-    });
-  }
-
-  /**
-   * Finds multiple images by their link type and link IDs from the database.
-   *
-   * @param {LinkType} linkType - The type of the link.
-   * @param {string[]} linkIds - The IDs of the links.
-   * @returns {Promise<Images[]>} A promise that resolves to the found images.
-   */
-  public async findManyByLinkTypeAndLinkIds(
-    linkType: LinkType,
-    linkIds: string[],
-  ): Promise<Images[]> {
-    return await this.imageRepo.find({
-      where: {
-        linkType,
-        linkId: In(linkIds),
-      },
-    });
-  }
-
-  /**
    * Updates the avatar of a member.
    *
    * @param {Express.Multer.File} file - The uploaded file.
@@ -240,11 +191,9 @@ export class ImagesService {
     file: Express.Multer.File,
     member: IMember,
   ): Promise<Images> {
-    const imageMember = await this.findByLinkTypeAndLinkId(
-      LinkType.MEMBER,
-      member.id,
-    );
-
+    const imageMember = await this.imageRepo.findOneBy({
+      userId: member.id,
+    });
     // If member has an existing image, remove the reference first
     if (imageMember) {
       // Then delete the image
@@ -257,9 +206,8 @@ export class ImagesService {
 
     // Upload new image
     const uploadFile = await this.uploadImage(file, {
-      description: `Cập nhật ảnh đại diện cho thành viên ${member.id}`,
-      linkId: member.id,
-      linkType: LinkType.MEMBER,
+      description: `Update avatar member ${member.id}`,
+      userId: member.id,
     });
 
     return uploadFile;

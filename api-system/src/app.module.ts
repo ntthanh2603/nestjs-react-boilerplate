@@ -9,12 +9,12 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { join } from 'path';
 import { APP_GUARD } from '@nestjs/core';
 import { RoleGuard } from './common/decorators/app.decorator';
-import { LogNestModule } from './log-nest/log-nest.module';
 import { ImagesModule } from './images/images.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { Redis } from 'ioredis';
 import { REDIS_CLIENT } from './redis/redis.module';
+import { LoggingModule } from './logging/logging.module';
 
 @Module({
   imports: [
@@ -58,8 +58,8 @@ import { REDIS_CLIENT } from './redis/redis.module';
     DatabaseModule,
     CombineModule,
     RedisModule,
-    LogNestModule,
     ImagesModule,
+    LoggingModule,
   ],
   providers: [
     {

@@ -26,8 +26,6 @@ export interface IMember {
     districtOrTown: string;
   };
   image?: Images;
-  storeId?: string;
-  workBranchId?: string;
   exp?: number;
   iat?: number;
   createdAt?: Date;

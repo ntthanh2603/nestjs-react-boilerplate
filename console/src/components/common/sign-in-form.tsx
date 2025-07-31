@@ -58,7 +58,7 @@ export function SignInForm({
       const response = await authService.signIn(data);
       console.log(response);
 
-      if (response?.message === "Mã OTP đã được gửi đến email của bạn") {
+      if (response?.message === "OTP has been sent to your email") {
         setStep("otp");
       } else if (response?.token) {
         if (data.roleMember === RoleMember.ADMIN) {

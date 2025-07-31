@@ -99,8 +99,6 @@ export class AuthService {
       id: userId,
       roleMember,
       deviceId,
-      storeId: metaData.storeId,
-      workBranchId: metaData.workBranchId,
     };
 
     const secretKey = this.generateSecretKey(payload);
@@ -164,8 +162,6 @@ export class AuthService {
     const session: any = await this.repo
       .createQueryBuilder('session')
       .leftJoinAndSelect('session.member', 'member')
-      .leftJoinAndSelect('member.store', 'store')
-      .leftJoinAndSelect('member.workBranch', 'workBranch')
       .where('session.refreshToken = :_refreshToken', { _refreshToken })
       .andWhere('session.deviceId = :deviceId', { deviceId })
       .andWhere('member.isBanned = :isBanned', { isBanned: false })
@@ -185,8 +181,6 @@ export class AuthService {
       id: session.member.id,
       deviceId,
       roleMember: session.member.roleMember,
-      storeId: session.member.store?.id,
-      workBranchId: session.member.workBranch?.id,
     };
 
     const secretKey = this.generateSecretKey(payload);
