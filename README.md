@@ -47,14 +47,14 @@ A modern full-stack boilerplate with authentication, database integration, and m
 
 - Node.js 18+
 - Docker and Docker Compose
-- PNPM (recommended) or Yarn/NPM
+- NPM (recommended) or Yarn
 
 ### Installation
 
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/nestjs-react-boilerplate.git
+   git clone https://github.com/ntthanh2603/nestjs-react-boilerplate.git
    cd nestjs-react-boilerplate
    ```
 
@@ -72,17 +72,17 @@ A modern full-stack boilerplate with authentication, database integration, and m
    # Or start services manually
    # Backend
    cd api-system
-   pnpm install
-   pnpm run start:dev
+   npm install
+   npm run start:dev
 
    # Frontend (in a new terminal)
    cd console
-   pnpm install
-   pnpm dev
+   npm install
+   npm run dev
    ```
 
 4. **Access the application**
-   - Frontend: http://localhost:5173
+   - Frontend: http://localhost:3268
    - API Docs: http://localhost:3000/api
    - Database: PostgreSQL on port 5432
    - Redis: Port 6379
