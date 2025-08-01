@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsEnum,
   IsBoolean,
+  IsEmail,
   Length,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
@@ -36,6 +37,8 @@ export class SignInMemberStep1Dto {
 
   @ApiProperty({ example: '12345678' })
   @IsString()
+  @MinLength(8)
+  @MaxLength(20)
   password: string;
 
   @ApiProperty({ enum: RoleMember, example: RoleMember.ADMIN })
@@ -54,6 +57,7 @@ export class SignInMemberConfirmOtpDto extends SignInMemberStep1Dto {
 export class SignUpMemberDto {
   @ApiProperty()
   @IsString()
+  @IsEmail()
   email: string;
 
   @ApiProperty()
