@@ -31,7 +31,7 @@ import { customToast } from "@/lib/toast";
 const profileFormSchema = z.object({
   fullName: z
     .string()
-    .min(2, "Họ và tên phải có ít nhất 2 ký tự")
+    .min(2, "Full name must have at least 2 characters")
     .optional()
     .or(z.literal("")),
   description: z.string().optional(),
@@ -39,7 +39,7 @@ const profileFormSchema = z.object({
     .string()
     .optional()
     .refine((val) => !val || val === "" || /^\d{10,11}$/.test(val), {
-      message: "Số điện thoại không hợp lệ (10-11 chữ số)",
+      message: "Phone number must be 10-11 digits",
     }),
   provinceOrMunicipality: z.string().optional(),
   districtOrTown: z.string().optional(),
@@ -52,7 +52,7 @@ const profileFormSchema = z.object({
     .refine(
       (val) => !val || val === "" || (val.length >= 8 && val.length <= 20),
       {
-        message: "Mật khẩu phải có từ 8-20 ký tự",
+        message: "Password must be between 8 and 20 characters",
       }
     ),
   is2FA: z.boolean(),
@@ -63,13 +63,13 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 const genderOptions = [
-  { value: Gender.MALE, label: "Nam" },
-  { value: Gender.FEMALE, label: "Nữ" },
-  { value: Gender.OTHER, label: "Khác" },
+  { value: Gender.MALE, label: "Male" },
+  { value: Gender.FEMALE, label: "Female" },
+  { value: Gender.OTHER, label: "Other" },
 ];
 
 const languageOptions = [
-  { value: Language.VIETNAM, label: "Tiếng Việt" },
+  { value: Language.VIETNAM, label: "Vietnamese" },
   { value: Language.ENGLISH, label: "English" },
 ];
 
@@ -151,13 +151,13 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
           "member",
           JSON.stringify({ ...member, image: response.data })
         );
-        customToast.success("Cập nhật ảnh đại diện thành công.");
+        customToast.success("Update avatar successfully.");
         setAvatarFile(null);
       }
     } catch (error: any) {
-      setUploadError("Không thể cập nhật ảnh đại diện. Vui lòng thử lại.");
+      setUploadError("Failed to update avatar. Please try again.");
       customToast.error(
-        error.response?.data?.message || "Không thể cập nhật ảnh đại diện."
+        error.response?.data?.message || "Failed to update avatar."
       );
     } finally {
       setIsUploading(false);
@@ -186,7 +186,7 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
       };
 
       await axiosInstance.patch("/members/settings", updateData);
-      customToast.success("Cập nhật thông tin thành công");
+      customToast.success("Update information successfully");
       localStorage.setItem(
         "member",
         JSON.stringify({ ...member, ...updateData })
@@ -194,7 +194,7 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
       reset(formData);
     } catch (error: any) {
       customToast.error(
-        error.response?.data?.message || "Có lỗi xảy ra khi cập nhật thông tin"
+        error.response?.data?.message || "Failed to update information."
       );
     } finally {
       setIsLoading(false);
@@ -221,14 +221,14 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b bg-white">
           <h2 className="text-2xl font-bold text-gray-800">
-            Thông tin tài khoản
+            Profile Information
           </h2>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={handleClose}
-              aria-label="Đóng"
+              aria-label="Close"
             >
               <span className="text-gray-500 hover:text-gray-700 text-2xl">
                 &times;
@@ -245,7 +245,7 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
               <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
                 <AvatarImage
                   src={member.image?.url || "/src/assets/react.svg"}
-                  alt="Ảnh đại diện"
+                  alt="Avatar"
                 />
               </Avatar>
               <div className="mt-3 flex flex-col items-center gap-2">
@@ -261,7 +261,7 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
                     htmlFor="avatar-upload"
                     className="inline-flex items-center justify-center rounded-md bg-blue-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer transition-colors"
                   >
-                    Chọn ảnh
+                    Choose image
                   </label>
                   <Button
                     onClick={handleAvatarUpload}
@@ -271,10 +271,10 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
                     {isUploading ? (
                       <>
                         <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                        Đang tải...
+                        Updating...
                       </>
                     ) : (
-                      "Cập nhật"
+                      "Update"
                     )}
                   </Button>
                 </div>
@@ -293,7 +293,7 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
                 <p className="text-base text-gray-800">{member.description}</p>
                 <p className="text-sm text-gray-600">Email: {member.email}</p>
                 <p className="text-sm text-gray-500">
-                  Vai trò:{" "}
+                  Role:{" "}
                   {member.roleMember === RoleMember.ADMIN
                     ? "Quản trị viên"
                     : "Người dùng"}
@@ -313,17 +313,17 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
             {/* Personal Information Section */}
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                Thông tin cá nhân
+                Personal Information
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Họ và tên</Label>
+                  <Label htmlFor="fullName">Full name</Label>
                   <Input
                     id="fullName"
                     {...register("fullName")}
                     disabled={isLoading}
-                    placeholder="Nhập họ và tên"
+                    placeholder="Enter full name"
                   />
                   {errors.fullName && (
                     <p className="text-sm text-red-500">
@@ -333,12 +333,12 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Số điện thoại</Label>
+                  <Label htmlFor="phoneNumber">Phone number</Label>
                   <Input
                     id="phoneNumber"
                     {...register("phoneNumber")}
                     disabled={isLoading}
-                    placeholder="Nhập số điện thoại"
+                    placeholder="Enter phone number"
                   />
                   {errors.phoneNumber && (
                     <p className="text-sm text-red-500">
@@ -348,22 +348,24 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="provinceOrMunicipality">Tỉnh/Thành phố</Label>
+                  <Label htmlFor="provinceOrMunicipality">
+                    Province or municipality
+                  </Label>
                   <Input
                     id="provinceOrMunicipality"
                     {...register("provinceOrMunicipality")}
                     disabled={isLoading}
-                    placeholder="Nhập tỉnh/thành phố"
+                    placeholder="Enter province or municipality"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="districtOrTown">Quận/Huyện</Label>
+                  <Label htmlFor="districtOrTown">District or town</Label>
                   <Input
                     id="districtOrTown"
                     {...register("districtOrTown")}
                     disabled={isLoading}
-                    placeholder="Nhập quận/huyện"
+                    placeholder="Enter district or town"
                   />
                 </div>
 
@@ -373,12 +375,12 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
                     id="facebook"
                     {...register("facebook")}
                     disabled={isLoading}
-                    placeholder="Nhập link Facebook"
+                    placeholder="Enter Facebook link"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Ngày sinh</Label>
+                  <Label>Birthday</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -413,7 +415,7 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Giới tính</Label>
+                  <Label>Gender</Label>
                   <Select
                     onValueChange={(value) =>
                       setValue(
@@ -440,23 +442,23 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Mô tả</Label>
+                <Label htmlFor="description">Description</Label>
                 <Input
                   id="description"
                   {...register("description")}
                   disabled={isLoading}
-                  placeholder="Nhập mô tả"
+                  placeholder="Enter description"
                 />
               </div>
             </div>
 
             {/* Security Section */}
             <div className="space-y-6 pt-6 mt-6 border-t">
-              <h3 className="text-lg font-semibold text-gray-900">Bảo mật</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Security</h3>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="password">Mật khẩu mới</Label>
+                  <Label htmlFor="password">New password</Label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -508,14 +510,14 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
 
             {/* Settings Section */}
             <div className="space-y-6 pt-6 mt-6 border-t">
-              <h3 className="text-lg font-semibold text-gray-900">Cài đặt</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Settings</h3>
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="isNotification">Thông báo</Label>
+                    <Label htmlFor="isNotification">Notification</Label>
                     <p className="text-sm text-muted-foreground">
-                      Nhận thông báo từ hệ thống
+                      Receive notifications from the system
                     </p>
                   </div>
                   <Switch
@@ -529,7 +531,7 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="language">Ngôn ngữ</Label>
+                  <Label htmlFor="language">Language</Label>
                   <Select
                     onValueChange={(value) =>
                       setValue("language", value as Language, {
@@ -539,7 +541,7 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
                     value={watch("language")}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Chọn ngôn ngữ" />
+                      <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
                       {languageOptions.map((option) => (
@@ -561,7 +563,7 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
                 onClick={handleClose}
                 disabled={isLoading}
               >
-                Hủy
+                Cancel
               </Button>
               <Button
                 type="submit"
@@ -571,10 +573,10 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang lưu...
+                    Saving...
                   </>
                 ) : (
-                  "Lưu thay đổi"
+                  "Save changes"
                 )}
               </Button>
             </div>
@@ -586,10 +588,10 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
       {showConfirmCloseModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
-            <h3 className="text-lg font-semibold mb-4">Xác nhận thoát</h3>
+            <h3 className="text-lg font-semibold mb-4">Confirm exit</h3>
             <p className="text-gray-700 mb-6">
-              Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn thoát mà không lưu
-              không?
+              You have unsaved changes. Are you sure you want to exit without
+              saving?
             </p>
             <div className="flex justify-center space-x-4">
               <Button
@@ -597,13 +599,13 @@ export function ProfileLayout({ member, onClose }: ProfileLayoutProps) {
                 onClick={() => setShowConfirmCloseModal(false)}
                 className="px-4 py-2"
               >
-                Tiếp tục chỉnh sửa
+                Continue editing
               </Button>
               <Button
                 onClick={handleConfirmClose}
                 className="bg-red-400 hover:bg-red-500 text-white px-4 py-2"
               >
-                Thoát và không lưu
+                Exit without saving
               </Button>
             </div>
           </div>

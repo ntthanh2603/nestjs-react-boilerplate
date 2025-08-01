@@ -32,7 +32,7 @@ export function MembersFilters({
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="Tìm kiếm theo tên, email..."
+          placeholder="Search by name, email..."
           className="w-full pl-8"
           value={searchParams.search || ""}
           onChange={(e) => onFilterChange("search", e.target.value)}
@@ -48,32 +48,63 @@ export function MembersFilters({
             }
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Tất cả vai trò" />
+              <SelectValue placeholder="Select role" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả vai trò</SelectItem>
-              <SelectItem value={RoleMember.ADMIN}>Quản trị viên</SelectItem>
-              <SelectItem value={RoleMember.USER}>Người dùng</SelectItem>
+              <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value={RoleMember.ADMIN}>Admin</SelectItem>
+              <SelectItem value={RoleMember.USER}>User</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="w-[calc(50%-0.25rem)] md:w-[180px]">
           <Select
-            value={searchParams.isBanned ?? "all"}
-            onValueChange={(value) =>
-              onFilterChange("isBanned", value === "all" ? undefined : value)
+            value={
+              searchParams.isBanned === undefined
+                ? "all"
+                : searchParams.isBanned
+                ? "banned"
+                : "active"
             }
+            onValueChange={(value) => {
+              if (value === "all") {
+                onFilterChange("isBanned", undefined);
+              } else {
+                onFilterChange("isBanned", value === "banned");
+              }
+            }}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Tất cả trạng thái" />
+              <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả trạng thái</SelectItem>
-              <SelectItem value="false">Đang hoạt động</SelectItem>
-              <SelectItem value="true">Bị cấm</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="banned">Banned</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="w-full md:w-auto">
+          <Button
+            variant="outline"
+            className="w-full md:w-auto gap-2"
+            onClick={onRefresh}
+            disabled={isLoading || isRefreshing}
+          >
+            {isRefreshing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Refreshing...
+              </>
+            ) : (
+              <>
+                <RotateCw className="h-4 w-4" />
+                Refresh
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
@@ -89,7 +120,7 @@ export function MembersFilters({
         ) : (
           <RotateCw className="h-4 w-4 mr-2" />
         )}
-        Làm mới
+        Refresh
       </Button>
     </div>
   );

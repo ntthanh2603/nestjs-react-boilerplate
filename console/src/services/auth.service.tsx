@@ -1,6 +1,8 @@
 import type {
   SignInFormData,
   AuthResponse,
+  SignUpFormData,
+  SignUpResponse,
 } from "@/types/interfaces/auth.interface";
 import { axiosInstance } from "@/services/apis/axios-client";
 import { customToast } from "@/lib/toast";
@@ -24,7 +26,65 @@ export const authService = {
 
       return response.data;
     } catch (error: any) {
-      customToast.error(error.response?.data?.message || "Đăng nhập thất bại");
+      customToast.error(error.response?.data?.message || "Login failed");
+      throw error;
+    }
+  },
+
+  async signUpSendOTP(
+    data: Omit<SignUpFormData, "otp" | "confirmPassword">
+  ): Promise<{ message: string }> {
+    try {
+      const response = await axiosInstance.post("/members/sign-up/send-otp", {
+        email: data.email,
+        fullName: data.fullName,
+        description: data.description,
+        password: data.password,
+      });
+
+      customToast.success(
+        response.data.message ||
+          "Verification code has been sent to your email!"
+      );
+      return response.data;
+    } catch (error: any) {
+      customToast.error(
+        error.response?.data?.message || "Failed to send verification code"
+      );
+      throw error;
+    }
+  },
+
+  async signUpConfirmOTP(
+    data: Pick<
+      SignUpFormData,
+      "email" | "otp" | "fullName" | "description" | "password"
+    >
+  ): Promise<SignUpResponse> {
+    try {
+      const response = await axiosInstance.post(
+        "/members/sign-up/confirm-otp",
+        {
+          email: data.email,
+          otp: data.otp,
+          fullName: data.fullName,
+          description: data.description,
+          password: data.password,
+        }
+      );
+
+      if (response.data?.token) {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("expiredAt", response.data.expiredAt);
+        localStorage.setItem("member", JSON.stringify(response.data.member));
+      }
+
+      return response.data;
+    } catch (error: any) {
+      customToast.error(
+        error.response?.data?.message || "OTP verification failed"
+      );
+      throw error;
     }
   },
 
@@ -35,7 +95,8 @@ export const authService = {
       return response.data;
     } catch (error: any) {
       this.clearAuthData();
-      customToast.error(error.message || "Đăng xuất thất bại");
+      customToast.error(error.message || "Logout failed");
+      throw error;
     }
   },
 
@@ -69,7 +130,6 @@ export const authService = {
     }
   },
 
-  // Helper method to refresh token
   async refreshToken() {
     try {
       const response = await axiosInstance.post("/auth/refresh-token");
@@ -81,7 +141,8 @@ export const authService = {
       }
     } catch (error: any) {
       this.clearAuthData();
-      customToast.error(error.message || "Lỗi khi cập nhật token");
+      customToast.error(error.message || "Failed to update token");
+      throw error;
     }
   },
 };

@@ -65,12 +65,12 @@ export const LogsFilters: React.FC<LogsFiltersProps> = ({
             }
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Tất cả trạng thái" />
+              <SelectValue placeholder="All status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả trạng thái</SelectItem>
-              <SelectItem value="SUCCESS">Thành công</SelectItem>
-              <SelectItem value="FAILURE">Thất bại</SelectItem>
+              <SelectItem value="all">All status</SelectItem>
+              <SelectItem value="SUCCESS">Success</SelectItem>
+              <SelectItem value="FAILURE">Failure</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -86,7 +86,7 @@ export const LogsFilters: React.FC<LogsFiltersProps> = ({
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "dd/MM/yyyy") : <span>Chọn ngày</span>}
+                {date ? format(date, "dd/MM/yyyy") : <span>Choose date</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
@@ -104,7 +104,7 @@ export const LogsFilters: React.FC<LogsFiltersProps> = ({
                     className="w-full"
                     onClick={() => setDate(undefined)}
                   >
-                    Xóa bộ lọc ngày
+                    Clear date filter
                   </Button>
                 </div>
               )}
@@ -125,7 +125,7 @@ export const LogsFilters: React.FC<LogsFiltersProps> = ({
         ) : (
           <RotateCw className="h-4 w-4 mr-2" />
         )}
-        Làm mới
+        Refresh
       </Button>
     </div>
   );

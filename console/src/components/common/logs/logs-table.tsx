@@ -77,7 +77,7 @@ export const LogsTable: React.FC<LogsTableProps> = ({
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
                 <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                <div className="mt-2">Đang tải...</div>
+                <div className="mt-2">Loading...</div>
               </TableCell>
             </TableRow>
           ) : isError ? (
@@ -86,7 +86,7 @@ export const LogsTable: React.FC<LogsTableProps> = ({
                 colSpan={columns.length}
                 className="h-24 text-center text-red-500"
               >
-                Lỗi khi tải dữ liệu: {error?.message || "Unknown error"}
+                Error when loading data: {error?.message || "Unknown error"}
               </TableCell>
             </TableRow>
           ) : table.getRowModel().rows?.length ? (
@@ -108,7 +108,7 @@ export const LogsTable: React.FC<LogsTableProps> = ({
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                Không tìm thấy nhật ký nào.
+                No logs found.
               </TableCell>
             </TableRow>
           )}

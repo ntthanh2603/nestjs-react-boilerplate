@@ -50,73 +50,67 @@ export function MembersTable({
   const columns: ColumnDef<Member>[] = [
     {
       accessorKey: "fullName",
-      header: () => (
-        <div className="flex items-center cursor-pointer hover:text-foreground ml-1">
-          Họ và tên
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2 ml-1">
-          <Avatar className="h-5 w-5 rounded-full">
-            <AvatarImage
-              src={row.original.image?.url}
-              alt={row.original.image?.description}
-            />
-            <AvatarFallback>
-              {getInitials(row.original.fullName)}
-            </AvatarFallback>
-          </Avatar>
-          <span>{row.original.fullName}</span>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
+      header: "Name",
+      cell: ({ row }) => {
+        const member = row.original;
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar className="h-9 w-9">
+              <AvatarImage
+                src={member.image?.url}
+                alt={member.fullName}
+                className="rounded-full"
+              />
+              <AvatarFallback className="bg-muted flex h-9 w-9 items-center justify-center rounded-full">
+                {getInitials(member.fullName)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <span className="font-medium">{member.fullName}</span>
+              <span className="text-muted-foreground text-sm">
+                {member.email}
+              </span>
+            </div>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "phoneNumber",
-      header: "Số điện thoại",
+      header: "Phone",
+      cell: ({ row }) => {
+        const member = row.original;
+        return <div>{member.phoneNumber || "-"}</div>;
+      },
     },
     {
       accessorKey: "roleMember",
-      header: "Vai trò",
+      header: "Role",
       cell: ({ row }) => {
-        const role = row.original.roleMember;
-        let roleText = "Nhân viên";
-        let bgColor = "bg-blue-100 text-blue-800";
-
-        if (role === RoleMember.ADMIN) {
-          roleText = "Quản trị viên";
-          bgColor = "bg-purple-100 text-purple-800";
-        } else if (role === RoleMember.USER) {
-          roleText = "Người dùng";
-          bgColor = "bg-green-100 text-green-800";
-        }
-
+        const member = row.original;
         return (
-          <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${bgColor}`}
-          >
-            {roleText}
-          </span>
+          <div className="capitalize">
+            {member.roleMember === RoleMember.ADMIN ? "Admin" : "User"}
+          </div>
         );
       },
     },
     {
       accessorKey: "isBanned",
-      header: "Trạng thái",
-      cell: ({ row }) => (
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            row.original.isBanned
-              ? "bg-red-100 text-red-800"
-              : "bg-green-100 text-green-800"
-          }`}
-        >
-          {row.original.isBanned ? "Bị cấm" : "Hoạt động"}
-        </span>
-      ),
+      header: "Status",
+      cell: ({ row }) => {
+        const member = row.original;
+        return (
+          <div className="flex items-center">
+            <div
+              className={`mr-2 h-2 w-2 rounded-full ${
+                member.isBanned ? "bg-destructive" : "bg-success"
+              }`}
+            />
+            <span>{member.isBanned ? "Banned" : "Active"}</span>
+          </div>
+        );
+      },
     },
     {
       id: "actions",
@@ -127,43 +121,33 @@ export function MembersTable({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Mở menu</span>
+                <span className="sr-only">Open menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Hành động</DropdownMenuLabel>
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(member.id)}
+                onClick={() => onToggleBan(member.id, !member.isBanned)}
               >
-                Sao chép ID
+                {member.isBanned ? "Unban User" : "Ban User"}
               </DropdownMenuItem>
-              <DropdownMenuItem>Xem chi tiết</DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  onUpdateRole(
-                    member.id,
-                    member.roleMember === RoleMember.ADMIN
-                      ? RoleMember.USER
-                      : RoleMember.ADMIN
-                  )
-                }
-                className={
-                  member.roleMember === RoleMember.ADMIN
-                    ? "text-yellow-600"
-                    : "text-purple-600"
-                }
-              >
-                {member.roleMember === RoleMember.ADMIN
-                  ? "Xóa quyền admin"
-                  : "Cấp quyền admin"}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={member.isBanned ? "text-green-600" : "text-red-500"}
-                onClick={() => onToggleBan(member.id, member.isBanned)}
-              >
-                {member.isBanned ? "Bỏ cấm" : "Cấm thành viên"}
-              </DropdownMenuItem>
+              {member.roleMember !== RoleMember.ADMIN && (
+                <DropdownMenuItem
+                  onClick={() =>
+                    onUpdateRole(
+                      member.id,
+                      member.roleMember === RoleMember.ADMIN
+                        ? RoleMember.USER
+                        : RoleMember.ADMIN
+                    )
+                  }
+                >
+                  {member.roleMember === RoleMember.ADMIN
+                    ? "Set as User"
+                    : "Set as Admin"}
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -209,16 +193,16 @@ export function MembersTable({
           {isLoading ? (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                Đang tải...
+                Loading...
               </TableCell>
             </TableRow>
           ) : isError ? (
             <TableRow>
               <TableCell
                 colSpan={columns.length}
-                className="h-24 text-center text-red-500"
+                className="h-24 text-center text-destructive"
               >
-                Lỗi khi tải dữ liệu: {error?.message || "Unknown error"}
+                Error loading members: {error?.message}
               </TableCell>
             </TableRow>
           ) : table.getRowModel().rows?.length ? (
@@ -237,7 +221,7 @@ export function MembersTable({
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                Không tìm thấy thành viên nào.
+                No results found
               </TableCell>
             </TableRow>
           )}

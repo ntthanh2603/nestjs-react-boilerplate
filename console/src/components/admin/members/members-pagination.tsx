@@ -16,16 +16,15 @@ export function MembersPagination({
   return (
     <div className="flex items-center justify-between px-2">
       <div className="text-sm text-muted-foreground">
-        Hiển thị{" "}
+        Showing{" "}
         <span className="font-medium">
           {(searchParams.page - 1) * searchParams.limit + 1}
         </span>{" "}
-        đến{" "}
+        to{" "}
         <span className="font-medium">
           {Math.min(searchParams.page * searchParams.limit, data?.total || 0)}
         </span>{" "}
-        trong tổng số <span className="font-medium">{data?.total || 0}</span>{" "}
-        thành viên
+        of <span className="font-medium">{data?.total || 0}</span> members
       </div>
       <div className="flex items-center space-x-2">
         <Button
@@ -34,7 +33,7 @@ export function MembersPagination({
           onClick={() => onPagination(searchParams.page - 1)}
           disabled={searchParams.page <= 1}
         >
-          Trước
+          Previous
         </Button>
         <Button
           variant="outline"
@@ -45,7 +44,7 @@ export function MembersPagination({
             searchParams.page * searchParams.limit >= (data?.total || 0)
           }
         >
-          Tiếp
+          Next
         </Button>
       </div>
     </div>

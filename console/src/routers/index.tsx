@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import NotFound from "@/routers/not-found";
 import SignIn from "@/pages/common/sign-in";
+import SignUp from "@/pages/common/sign-up";
 import LayoutAdmin from "@/components/admin/layouts/layout-admin";
 import AdminRoute from "@/routers/admin-router";
 import DashboardAdmin from "@/pages/admin/dashboard-admin";
@@ -56,6 +57,10 @@ export const router = createBrowserRouter([
   {
     path: "sign-in",
     element: <SignIn />,
+  },
+  {
+    path: "sign-up",
+    element: <SignUp />,
   },
   {
     path: "*",

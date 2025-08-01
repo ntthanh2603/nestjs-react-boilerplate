@@ -3,24 +3,24 @@ import { Home, LifeBuoy, Send, History } from "lucide-react";
 export const navigationMemberData = {
   navMain: [
     {
-      title: "Trang chủ",
+      title: "Home",
       url: "/dashboard-member",
       icon: Home,
     },
   ],
   navSecondary: [
     {
-      title: "Hỗ trợ",
+      title: "Support",
       url: "https://www.facebook.com/ntthanh2603",
       icon: LifeBuoy,
     },
     {
-      title: "Phản hồi",
+      title: "Feedback",
       url: "https://www.facebook.com/ntthanh2603",
       icon: Send,
     },
     {
-      title: "Lịch sử thao tác",
+      title: "Operation History",
       url: "/logs",
       icon: History,
     },

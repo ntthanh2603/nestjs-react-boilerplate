@@ -29,11 +29,11 @@ export class MembersErrorBoundary extends React.Component<
       return (
         <div className="p-6">
           <h1 className="text-2xl font-bold text-red-600 mb-4">
-            Có lỗi xảy ra!
+            An error occurred!
           </h1>
           <div className="bg-red-50 border border-red-200 rounded-md p-4">
             <pre className="text-sm text-red-800 whitespace-pre-wrap">
-              {this.state.error?.message || "Unknown error occurred"}
+              {this.state.error?.message || "An unknown error occurred"}
             </pre>
           </div>
           <Button
@@ -41,7 +41,7 @@ export class MembersErrorBoundary extends React.Component<
             className="mt-4"
             variant="outline"
           >
-            Tải lại trang
+            Reload Page
           </Button>
         </div>
       );

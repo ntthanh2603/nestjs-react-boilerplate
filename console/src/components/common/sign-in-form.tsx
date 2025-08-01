@@ -68,7 +68,7 @@ export function SignInForm({
     } catch (error: any) {
       setError(
         error.response?.data?.message ||
-          "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin."
+          "Login failed. Please check your information and try again."
       );
     } finally {
       setIsLoading(false);
@@ -92,13 +92,13 @@ export function SignInForm({
           <p className="text-muted-foreground text-sm text-balance">
             {step === "otp" ? (
               <>
-                Mã xác thực đã được gửi đến <br />
+                Verification code has been sent to <br />
                 <strong>{currentEmail}</strong>
               </>
             ) : (
               <>
-                Kính chào quý khách <br /> Xin mời nhập thông tin đăng nhập vào
-                hệ thống
+                Welcome back <br />
+                Please enter your login information
               </>
             )}
           </p>
@@ -119,7 +119,7 @@ export function SignInForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Nhập email của bạn"
+                  placeholder="Enter your email"
                   disabled={isLoading}
                   {...form.register("email")}
                   aria-invalid={form.formState.errors.email ? "true" : "false"}
@@ -133,18 +133,18 @@ export function SignInForm({
 
               <div className="grid gap-3">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Mật khẩu</Label>
+                  <Label htmlFor="password">Password</Label>
                   <Link
                     to="#"
                     className="ml-auto text-sm underline-offset-4 hover:underline"
                   >
-                    Quên mật khẩu?
+                    Forgot password?
                   </Link>
                 </div>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Nhập mật khẩu của bạn"
+                  placeholder="Enter your password"
                   disabled={isLoading}
                   {...form.register("password")}
                   aria-invalid={
@@ -159,7 +159,7 @@ export function SignInForm({
               </div>
 
               <div className="grid gap-3">
-                <Label htmlFor="roleMember">Vai trò</Label>
+                <Label htmlFor="roleMember">Role</Label>
                 <Select
                   onValueChange={(value) =>
                     form.setValue("roleMember", value as RoleMember)
@@ -168,13 +168,13 @@ export function SignInForm({
                   disabled={isLoading}
                 >
                   <SelectTrigger id="roleMember" className="w-full">
-                    <SelectValue placeholder="Chọn vai trò của bạn" />
+                    <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={RoleMember.ADMIN}>
-                      Quản trị viên
+                      Administrator
                     </SelectItem>
-                    <SelectItem value={RoleMember.USER}>Người dùng</SelectItem>
+                    <SelectItem value={RoleMember.USER}>User</SelectItem>
                   </SelectContent>
                 </Select>
                 {form.formState.errors.roleMember && (
@@ -214,10 +214,10 @@ export function SignInForm({
 
           <Button type="submit" disabled={isLoading}>
             {isLoading
-              ? "Đang xử lý..."
+              ? "Processing..."
               : step === "otp"
-              ? "Xác nhận OTP"
-              : "Đăng nhập"}
+              ? "Verify OTP"
+              : "Sign In"}
           </Button>
 
           {step === "otp" && (
@@ -227,7 +227,7 @@ export function SignInForm({
               onClick={handleBackToCredentials}
               disabled={isLoading}
             >
-              Quay lại
+              Back
             </Button>
           )}
 
@@ -235,8 +235,17 @@ export function SignInForm({
             <>
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                 <span className="bg-background text-muted-foreground relative z-10 px-2">
-                  Hoặc đăng nhập với
+                  Or
                 </span>
+              </div>
+              <div className="text-center text-sm">
+                Don't have an account?{" "}
+                <Link
+                  to="/sign-up"
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  Sign up
+                </Link>
               </div>
               <Button variant="outline" className="w-full gap-2">
                 <svg
@@ -262,7 +271,7 @@ export function SignInForm({
                     className="text-[#EA4335]"
                   />
                 </svg>
-                <span>Đăng nhập với Google</span>
+                <span>Sign in with Google</span>
               </Button>
             </>
           )}

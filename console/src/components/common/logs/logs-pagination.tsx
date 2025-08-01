@@ -17,16 +17,15 @@ export const LogsPagination: React.FC<LogsPaginationProps> = ({
   return (
     <div className="flex items-center justify-between px-2">
       <div className="text-sm text-muted-foreground">
-        Hiển thị{" "}
+        Showing{" "}
         <span className="font-medium">
           {(searchParams.page - 1) * searchParams.limit + 1}
         </span>{" "}
-        đến{" "}
+        to{" "}
         <span className="font-medium">
           {Math.min(searchParams.page * searchParams.limit, data?.total || 0)}
         </span>{" "}
-        trong tổng số <span className="font-medium">{data?.total || 0}</span>{" "}
-        bản ghi
+        of <span className="font-medium">{data?.total || 0}</span> logs
       </div>
       <div className="flex items-center space-x-2">
         <Button
@@ -35,10 +34,10 @@ export const LogsPagination: React.FC<LogsPaginationProps> = ({
           onClick={() => onPagination(searchParams.page - 1)}
           disabled={searchParams.page <= 1}
         >
-          Trước
+          Previous
         </Button>
         <span className="text-sm px-2">
-          Trang {searchParams.page} /{" "}
+          Page {searchParams.page} /{" "}
           {Math.ceil((data?.total || 0) / searchParams.limit)}
         </span>
         <Button
@@ -50,7 +49,7 @@ export const LogsPagination: React.FC<LogsPaginationProps> = ({
             searchParams.page * searchParams.limit >= (data?.total || 0)
           }
         >
-          Tiếp
+          Next
         </Button>
       </div>
     </div>

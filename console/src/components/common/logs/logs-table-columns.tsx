@@ -34,7 +34,7 @@ export const createColumns = (
   },
   {
     accessorKey: "context",
-    header: () => <div className="p-2 font-medium">Ngữ cảnh</div>,
+    header: () => <div className="p-2 font-medium">Context</div>,
     cell: ({ row }) => (
       <div
         className="text-sm p-2 line-clamp-2 break-words"
@@ -48,7 +48,7 @@ export const createColumns = (
   },
   {
     accessorKey: "details",
-    header: () => <div className="p-2 font-medium">Chi tiết</div>,
+    header: () => <div className="p-2 font-medium">Details</div>,
     cell: ({ row }) => (
       <div className="p-2 space-y-1">
         {row.original.details &&
@@ -79,7 +79,7 @@ export const createColumns = (
   {
     accessorKey: "status",
     header: () => (
-      <div className="p-2 font-medium text-center md:text-left">Trạng thái</div>
+      <div className="p-2 font-medium text-center md:text-left">Status</div>
     ),
     cell: ({ row }) => (
       <div className="flex justify-center md:justify-start p-2">
@@ -105,7 +105,7 @@ export const createColumns = (
         className="flex items-center cursor-pointer hover:text-foreground transition-colors duration-200 p-2 rounded hover:bg-accent whitespace-nowrap"
         onClick={() => onSort("createdAt")}
       >
-        <span className="font-medium">Thời gian</span>
+        <span className="font-medium">Time</span>
         {searchParams.sortBy === "createdAt" && (
           <span className="ml-1 text-sm">
             {searchParams.sortOrder === "ASC" ? "↑" : "↓"}
