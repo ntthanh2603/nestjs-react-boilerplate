@@ -35,7 +35,7 @@ import {
 import { JwtAuthGuard } from 'src/common/guards/auth.guard';
 import { IMember } from 'src/common/interfaces/app.interface';
 import { AuthService } from '../auth/auth.service';
-import { Member, Role } from 'src/common/decorators/app.decorator';
+import { Member, Public, Role } from 'src/common/decorators/app.decorator';
 import { RoleMember } from 'src/common/enums/enum';
 import { Members } from './entities/member.entity';
 import { FilterSearchMemberDto } from './dto/member.dto';
@@ -43,6 +43,7 @@ import { EXPIRED_REFRESH_TOKEN } from 'src/common/constants/app.constants';
 import { Admin } from 'src/common/decorators/app.decorator';
 import { IdQueryParamDto } from 'src/common/dtos/id-query-param.dto';
 import { Throttle } from '@nestjs/throttler';
+import { SignUpMemberDto } from './dto/member.dto';
 
 @ApiTags('Members')
 @Controller('members')
@@ -89,6 +90,36 @@ export class MembersController {
   @UseGuards(JwtAuthGuard)
   filterSearchMembers(@Query() query: FilterSearchMemberDto) {
     return this.membersService.filterSearchMembers(query);
+  }
+
+  @Doc({
+    summary: 'Sign up member. Public',
+    description:
+      'Sign up member use email and password. Return a message to confirm the operation',
+    response: {
+      serialization: DefaultMessageResponseDto,
+    },
+  })
+  @Post('/sign-up/send-otp')
+  @Throttle({ default: { limit: 1, ttl: 5000 } })
+  @Public()
+  signUpSendOTP(@Body() dto: SignUpMemberDto) {
+    return this.membersService.signUpSendOTP(dto);
+  }
+
+  @Doc({
+    summary: 'Sign up member confirm otp. Public',
+    description:
+      'Sign up member confirm otp. Return a message to confirm the operation',
+    response: {
+      serialization: DefaultMessageResponseDto,
+    },
+  })
+  @Post('/sign-up/confirm-otp')
+  @Throttle({ default: { limit: 1, ttl: 5000 } })
+  @Public()
+  signUpConfirmOTP(@Body() dto: SignUpMemberDto) {
+    return this.membersService.signUpConfirmOTP(dto);
   }
 
   @Doc({

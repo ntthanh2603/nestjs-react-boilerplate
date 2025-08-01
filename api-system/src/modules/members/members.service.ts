@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -25,7 +26,7 @@ import * as randomatic from 'randomatic';
 import { Response } from 'express';
 import { IMember } from 'src/common/interfaces/app.interface';
 import { GetManyBaseResponseDto } from 'src/common/dtos/get-many-base.dto';
-import { FilterSearchMemberDto } from './dto/member.dto';
+import { FilterSearchMemberDto, SignUpMemberDto } from './dto/member.dto';
 import { getManyResponse } from 'src/common/dtos/get-many-response';
 import { OnModuleInit } from '@nestjs/common';
 import { EXPIRED_REFRESH_TOKEN } from 'src/common/constants/app.constants';
@@ -326,8 +327,10 @@ export class MembersService implements OnModuleInit {
         subject: 'Authentication account',
         template: 'send-otp-authentication',
         context: {
+          otpPurposeMessage: 'OTP for sign in account',
           otp,
           fullName: member.fullName,
+          otpExpiry: 2 * 60,
         },
       });
 
@@ -490,5 +493,73 @@ export class MembersService implements OnModuleInit {
     return {
       message: 'Success',
     };
+  }
+
+  /**
+   * Sign up member send otp
+   *
+   * @param dto the data transfer object with the member's data
+   * @returns a default message response object
+   * @throws {ConflictException} if the email address is already used
+   */
+  public async signUpSendOTP(dto: SignUpMemberDto) {
+    const { email, password, fullName, description } = dto;
+    const member = await this.memberRepository.count({
+      where: { email },
+    });
+    if (member > 0) {
+      throw new ConflictException('Email address is already used');
+    }
+    const otp = randomatic('0', 6);
+    await this.redisService.set(`otp:${email}`, otp, 2 * 60);
+
+    await this.mailService.sendMail({
+      to: email!,
+      subject: 'Authentication account',
+      template: 'send-otp-authentication',
+      context: {
+        otp,
+        otpPurposeMessage: 'OTP for sign up account',
+        fullName,
+        otpExpiry: 2 * 60,
+      },
+    });
+
+    return { message: 'OTP has been sent to your email' };
+  }
+
+  /**
+   * Sign up member confirm otp
+   *
+   * @param dto the data transfer object with the member's data
+   * @returns a default message response object
+   * @throws {ConflictException} if the email address is already used
+   */
+  public async signUpConfirmOTP(dto: SignUpMemberDto) {
+    const { email, password, fullName, description } = dto;
+    const member = await this.memberRepository.count({
+      where: { email },
+    });
+    if (member > 0) {
+      throw new ConflictException('Email address is already used');
+    }
+
+    const storedOtp = await this.redisService.get(`otp:${email}`);
+    if (storedOtp !== dto.otp) {
+      throw new UnauthorizedException('OTP not correct');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const passwordHash = await this.hashPassword(password, salt);
+    await this.memberRepository.save({
+      email,
+      password: passwordHash,
+      salt,
+      fullName,
+      description,
+      roleMember: RoleMember.USER,
+    });
+    await this.redisService.del(`otp:${email}`);
+    return { message: 'Success' };
   }
 }

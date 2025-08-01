@@ -70,38 +70,8 @@ export class SignUpMemberDto {
 
   @ApiProperty()
   @IsString()
-  phoneNumber: string;
-
-  @ApiProperty()
-  @IsString()
-  cid: string;
-
-  @ApiProperty({ enum: Gender })
-  @IsString()
-  gender: Gender;
-
-  @ApiProperty({ type: AddressDto })
-  @ValidateNested()
-  @Type(() => AddressDto)
-  @IsObject()
-  address: AddressDto;
-
-  @ApiProperty({ example: '2025-07-20T08:51:12.294Z' })
-  @IsString()
-  dateOfIssue: string;
-
-  @ApiProperty({ example: 'Công an Hà Nội' })
-  @IsString()
-  placeOfIssue: string;
-
-  @ApiProperty({ example: '2025-07-20T08:51:12.294Z' })
-  @IsString()
-  birthday: string;
-
-  @ApiProperty()
   @IsOptional()
-  @IsString()
-  facebook?: string;
+  otp?: string;
 }
 
 export class GetMemberResponseDto {

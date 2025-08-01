@@ -6,8 +6,8 @@ actions-runner/
 .github/key_pair.pem
 
 # dotenv environment variable files
-# .env.production
-# .env
+.env.production
+.env
 
 # Dependency directories
 node_modules/
